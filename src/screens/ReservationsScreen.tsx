@@ -4,7 +4,9 @@ import {
   Check,
   Clock,
   Crown,
+  ExternalLink,
   FileText,
+  List,
   Phone,
   Plus,
   Trash2,
@@ -14,6 +16,8 @@ import {
 } from 'lucide-react';
 import { SEATING_TIER_LIST } from '../data/menu';
 import { saveReservationsTextDocument } from '../services/reservationExport';
+import { buildGoogleCalendarEventUrl } from '../services/googleCalendarSync';
+import { ReservationCalendarView } from '../components/ReservationCalendarView';
 import type {
   LoungeReservation,
   LoungeTable,
@@ -47,6 +51,7 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
   onSeatTable,
 }) => {
   const [filterStatus, setFilterStatus] = useState<ReservationStatus | 'all'>('scheduled');
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
 
   // Book Reservation Modal State
   const [isBookOpen, setIsBookOpen] = useState(false);
@@ -158,33 +163,71 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        {(
-          [
-            { id: 'scheduled', label: `Scheduled (${scheduledList.length})` },
-            { id: 'seated', label: 'Seated' },
-            { id: 'cancelled', label: 'Cancelled / No-Show' },
-            { id: 'all', label: `All (${reservations.length})` },
-          ] as const
-        ).map((tab) => (
+      {/* Filter Tabs & View Mode Switcher */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+          {(
+            [
+              { id: 'scheduled', label: `Scheduled (${scheduledList.length})` },
+              { id: 'seated', label: 'Seated' },
+              { id: 'cancelled', label: 'Cancelled / No-Show' },
+              { id: 'all', label: `All (${reservations.length})` },
+            ] as const
+          ).map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setFilterStatus(tab.id)}
+              className={`min-h-[38px] rounded-xl border px-3 text-xs font-bold transition-colors whitespace-nowrap ${
+                filterStatus === tab.id
+                  ? 'border-cyan-400 bg-cyan-400 text-slate-950 cyber-glow-cyan'
+                  : 'border-cyan-500/20 bg-[#060913] text-slate-300 hover:border-cyan-400/50'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center rounded-xl border border-cyan-500/25 bg-[#060913] p-1">
           <button
-            key={tab.id}
             type="button"
-            onClick={() => setFilterStatus(tab.id)}
-            className={`min-h-[38px] rounded-xl border px-3.5 text-xs font-bold transition-colors whitespace-nowrap ${
-              filterStatus === tab.id
-                ? 'border-cyan-400 bg-cyan-400 text-slate-950 cyber-glow-cyan'
-                : 'border-cyan-500/20 bg-[#060913] text-slate-300 hover:border-cyan-400/50'
+            onClick={() => setViewMode('list')}
+            className={`flex min-h-[32px] items-center gap-1 rounded-lg px-3 text-xs font-bold transition-colors ${
+              viewMode === 'list'
+                ? 'bg-cyan-400 text-slate-950 cyber-glow-cyan'
+                : 'text-slate-400 hover:text-cyan-200'
             }`}
           >
-            {tab.label}
+            <List className="h-3.5 w-3.5" />
+            List
           </button>
-        ))}
+          <button
+            type="button"
+            onClick={() => setViewMode('calendar')}
+            className={`flex min-h-[32px] items-center gap-1 rounded-lg px-3 text-xs font-bold transition-colors ${
+              viewMode === 'calendar'
+                ? 'bg-cyan-400 text-slate-950 cyber-glow-cyan'
+                : 'text-slate-400 hover:text-cyan-200'
+            }`}
+          >
+            <Calendar className="h-3.5 w-3.5" />
+            Calendar Grid
+          </button>
+        </div>
       </div>
 
-      {/* Reservations Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      {viewMode === 'calendar' ? (
+        <ReservationCalendarView
+          reservations={filteredList}
+          onSelectDate={() => {}}
+          onSelectReservation={(res) => {
+            setSeatingReservation(res);
+            setSelectedTableId('');
+          }}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {filteredList.length === 0 ? (
           <div className="col-span-full rounded-2xl border border-dashed border-cyan-500/20 p-8 text-center text-xs text-slate-400">
             No {filterStatus} reservations found. Tap "Book New Reservation" to schedule a booking.
@@ -266,6 +309,16 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
                       "{res.notes}"
                     </p>
                   )}
+
+                  <a
+                    href={buildGoogleCalendarEventUrl(res)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-cyan-300 hover:text-cyan-200 transition-colors pt-1"
+                  >
+                    <ExternalLink className="h-3 w-3 text-cyan-400" />
+                    Add to Google Calendar
+                  </a>
                 </div>
 
                 {/* Reservation Action Buttons */}
@@ -308,6 +361,7 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
           })
         )}
       </div>
+      )}
 
       {/* Modal 1: Book New Reservation */}
       {isBookOpen && (
