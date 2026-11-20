@@ -15,8 +15,8 @@ import {
   DEFAULT_SETTINGS,
   getTableSeatingTier,
   getVipUpgradeOption,
-} from './src/data/menu.ts';
-import { buildEscPosBuffer } from './src/services/kitchenPrinter.ts';
+} from './src/data/menu';
+import { buildEscPosBuffer } from './src/services/kitchenPrinter';
 import type {
   ActiveStaffMember,
   BatchReport,
@@ -37,7 +37,7 @@ import type {
   TableFloor,
   TableShape,
   TableZone,
-} from './src/types.ts';
+} from './src/types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
