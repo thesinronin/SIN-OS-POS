@@ -1,0 +1,327 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-display: 'Chakra Petch', system-ui, -apple-system, sans-serif;
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #05070E;
+    background-image:
+      radial-gradient(circle at 12% 0%, rgba(34, 211, 238, 0.08), transparent 36%),
+      radial-gradient(circle at 88% 4%, rgba(217, 70, 239, 0.07), transparent 34%);
+    background-attachment: fixed;
+    color: #F1F5F9;
+    overscroll-behavior-y: contain;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Theme 2: Star Trek (LCARS Style) */
+  body.theme-startrek {
+    background-color: #080512;
+    background-image:
+      radial-gradient(circle at 10% 0%, rgba(245, 158, 11, 0.18), transparent 45%),
+      radial-gradient(circle at 90% 10%, rgba(192, 132, 252, 0.16), transparent 45%);
+    color: #FFEDD5;
+  }
+  body.theme-startrek button {
+    border-radius: 9999px;
+  }
+  body.theme-startrek .cyber-glow-cyan {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.35), inset 0 1px 0 rgba(254, 215, 170, 0.25);
+    background-color: #F59E0B !important;
+    color: #080512 !important;
+  }
+
+  /* Theme 3: Lord of the Rings (Middle-earth Style) */
+  body.theme-lotr {
+    background-color: #0E110C;
+    background-image:
+      radial-gradient(circle at 15% 0%, rgba(234, 179, 8, 0.14), transparent 45%),
+      radial-gradient(circle at 85% 5%, rgba(34, 197, 94, 0.12), transparent 45%);
+    color: #FEF3C7;
+    font-family: 'Georgia', serif;
+  }
+  body.theme-lotr button {
+    border-radius: 0.5rem;
+    border-color: rgba(234, 179, 8, 0.4);
+  }
+  body.theme-lotr .cyber-glow-cyan {
+    box-shadow: 0 0 20px rgba(234, 179, 8, 0.35), inset 0 1px 0 rgba(254, 240, 138, 0.25);
+    background-color: #EAB308 !important;
+    color: #0E110C !important;
+  }
+
+  /* Elven Mallorn Leaf shape for tables in Lord of the Rings theme */
+  body.theme-lotr .floor-table-node {
+    border-radius: 4px 82% 4px 82% !important;
+    border: 2px solid rgba(234, 179, 8, 0.65) !important;
+    box-shadow: inset 0 0 14px rgba(34, 197, 94, 0.22), 0 6px 20px rgba(0, 0, 0, 0.75) !important;
+  }
+
+  /* Theme 4: Barney (Purple & Green Style) */
+  body.theme-barney {
+    background-color: #1A082E;
+    background-image:
+      radial-gradient(circle at 20% 0%, rgba(217, 70, 239, 0.25), transparent 50%),
+      radial-gradient(circle at 80% 10%, rgba(132, 204, 22, 0.22), transparent 50%);
+    color: #F0FDF4;
+  }
+  body.theme-barney button {
+    border-radius: 9999px;
+  }
+  body.theme-barney .cyber-glow-cyan {
+    box-shadow: 0 0 20px rgba(132, 204, 22, 0.4), inset 0 1px 0 rgba(217, 249, 157, 0.3);
+    background-color: #84CC16 !important;
+    color: #1A082E !important;
+  }
+
+  /* Theme 5: 8-Bit Retro Video Game Style */
+  body.theme-bit8 {
+    background-color: #000000;
+    background-image:
+      linear-gradient(to right, rgba(0, 255, 102, 0.12) 2px, transparent 2px),
+      linear-gradient(to bottom, rgba(0, 255, 102, 0.12) 2px, transparent 2px);
+    background-size: 20px 20px;
+    color: #00FF66;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  body.theme-bit8 button,
+  body.theme-bit8 div,
+  body.theme-bit8 input {
+    border-radius: 0px !important;
+  }
+  body.theme-bit8 .cyber-glow-cyan {
+    box-shadow: 4px 4px 0px #00FF66 !important;
+    background-color: #00FF66 !important;
+    color: #000000 !important;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: 0.02em;
+  }
+
+  .font-mono, .tabular-nums {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.modal-safe-panel {
+  max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 2rem);
+}
+
+@media (min-width: 640px) {
+  .modal-safe-panel {
+    max-height: 88dvh;
+  }
+}
+
+/* Cyberpunk structural surfaces & neon edge highlights */
+.cyber-surface {
+  background-color: #0B101D;
+  border-color: rgba(34, 211, 238, 0.18);
+  box-shadow: inset 0 1px 0 rgba(34, 211, 238, 0.08);
+}
+
+.cyber-inset {
+  background-color: #060913;
+  border-color: rgba(56, 189, 248, 0.16);
+}
+
+.cyber-glow-cyan {
+  box-shadow:
+    0 6px 18px rgba(34, 211, 238, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    inset 0 1px 1px rgba(255, 255, 255, 0.45),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.3) !important;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.cyber-glow-cyan:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 2px 6px rgba(34, 211, 238, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+.cyber-glow-magenta {
+  box-shadow:
+    0 6px 18px rgba(217, 70, 239, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    inset 0 1px 1px rgba(255, 255, 255, 0.45),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.3) !important;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.cyber-glow-magenta:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 2px 6px rgba(217, 70, 239, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+.cyber-glow-emerald {
+  box-shadow:
+    0 6px 18px rgba(16, 185, 129, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    inset 0 1px 1px rgba(255, 255, 255, 0.45),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.3) !important;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.cyber-glow-emerald:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 3D Tactile Floor Table Node Styling */
+.floor-table-node {
+  box-shadow:
+    0 12px 28px -4px rgba(0, 0, 0, 0.8),
+    0 4px 10px rgba(0, 0, 0, 0.5),
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.25),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.55) !important;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease, border-color 0.15s ease !important;
+}
+
+.floor-table-node:hover {
+  transform: translateY(-3px) scale(1.03) !important;
+  box-shadow:
+    0 18px 38px -6px rgba(0, 0, 0, 0.9),
+    0 6px 16px rgba(0, 0, 0, 0.7),
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.4),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.55) !important;
+}
+
+.floor-table-node:active {
+  transform: translateY(1px) scale(0.99) !important;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.6),
+    inset 0 2px 6px rgba(0, 0, 0, 0.6) !important;
+}
+
+.cyber-chamfer {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 10px) 0,
+    100% 10px,
+    100% 100%,
+    10px 100%,
+    0 calc(100% - 10px)
+  );
+}
+
+/* Synthwave perspective grid for indoor 2D floor layout canvas */
+.floor-grid-bg {
+  background-color: #060A14;
+  background-image:
+    linear-gradient(to right, rgba(34, 211, 238, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(34, 211, 238, 0.07) 1px, transparent 1px),
+    linear-gradient(to right, rgba(217, 70, 239, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(217, 70, 239, 0.05) 1px, transparent 1px);
+  background-size: 28px 28px, 28px 28px, 112px 112px, 112px 112px;
+}
+
+/* Bio-neon matrix grid for outside patio canvas */
+.patio-grid-bg {
+  background-color: #051014;
+  background-image:
+    radial-gradient(rgba(16, 185, 129, 0.18) 1px, transparent 1px),
+    linear-gradient(to right, rgba(34, 211, 238, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(34, 211, 238, 0.04) 1px, transparent 1px);
+  background-size: 22px 22px, 88px 88px, 88px 88px;
+}
+
+/* Official Sign in with Google button styling */
+.gsi-material-button {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  background-color: #ffffff;
+  border: 1px solid #747775;
+  border-radius: 12px;
+  box-sizing: border-box;
+  color: #1f1f1f;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', Roboto, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  height: 44px;
+  letter-spacing: 0.2px;
+  outline: none;
+  overflow: hidden;
+  padding: 0 16px;
+  position: relative;
+  text-align: center;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gsi-material-button:hover:not(:disabled) {
+  background-color: #f8fafc;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.gsi-material-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.gsi-material-button-content-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.gsi-material-button-icon {
+  height: 18px;
+  width: 18px;
+  flex-shrink: 0;
+}
+
+/* Thermal Kitchen Printer CSS (58mm / 80mm paper) */
+@media print {
+  @page {
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body #root > *:not(#thermal-kitchen-receipt) {
+    display: none !important;
+  }
+
+  #thermal-kitchen-receipt {
+    display: block !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    padding: 4mm !important;
+    margin: 0 !important;
+  }
+
+  #thermal-kitchen-receipt[data-width='58mm'] {
+    width: 58mm !important;
+  }
+
+  #thermal-kitchen-receipt[data-width='80mm'] {
+    width: 80mm !important;
+  }
+}
+

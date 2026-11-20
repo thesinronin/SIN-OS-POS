@@ -1,0 +1,472 @@
+import React, { useRef, useState } from 'react';
+import {
+  Check,
+  Edit3,
+  LayoutGrid,
+  List,
+  Map as MapIcon,
+  Plus,
+  Search,
+  Users,
+  X,
+} from 'lucide-react';
+import { FLOORS } from '../data/menu';
+import type { LoungeSettings, LoungeTable, TableFloor } from '../types';
+import { TimerDisplay } from '../components/TimerDisplay';
+import { FloorMapCanvas } from '../components/FloorMapCanvas';
+
+interface FloorPlanScreenProps {
+  tables: LoungeTable[];
+  settings: LoungeSettings;
+  selectedFloor: TableFloor;
+  onChangeFloor: (floor: TableFloor) => void;
+  onSelectTable: (table: LoungeTable) => void;
+  onEditTable: (table: LoungeTable) => void;
+  onAddNewTable: () => void;
+  onMoveTable: (tableId: string, x: number, y: number) => void;
+}
+
+export const FloorPlanScreen: React.FC<FloorPlanScreenProps> = ({
+  tables,
+  settings,
+  selectedFloor,
+  onChangeFloor,
+  onSelectTable,
+  onEditTable,
+  onAddNewTable,
+  onMoveTable,
+}) => {
+  const [viewMode, setViewMode] = useState<'map' | 'grid' | 'list'>('map');
+  const [showAllInGrid, setShowAllInGrid] = useState(false);
+  const [isEditingLayout, setIsEditingLayout] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const totalOccupied = tables.filter((t) => t.status === 'occupied').length;
+  const activeRevenue = tables
+    .filter((t) => t.status === 'occupied')
+    .reduce(
+      (sum, t) =>
+        sum + (t.orders || []).reduce((s, o) => s + o.unitPrice * o.quantity, 0),
+      0
+    );
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const baseTables =
+    normalizedQuery.length > 0 || (viewMode !== 'map' && showAllInGrid)
+      ? tables
+      : tables.filter((t) => t.floor === selectedFloor);
+
+  const displayedTables = normalizedQuery
+    ? baseTables.filter(
+        (t) =>
+          (t.tableNumber || '').toLowerCase().includes(normalizedQuery) ||
+          t.name.toLowerCase().includes(normalizedQuery) ||
+          (t.guestName || '').toLowerCase().includes(normalizedQuery)
+      )
+    : baseTables;
+
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (isEditingLayout) return;
+    touchStartRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (isEditingLayout || !touchStartRef.current) return;
+    const dx = e.changedTouches[0].clientX - touchStartRef.current.x;
+    const dy = e.changedTouches[0].clientY - touchStartRef.current.y;
+    touchStartRef.current = null;
+
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+      const currentIdx = FLOORS.indexOf(selectedFloor);
+      if (dx < 0 && currentIdx < FLOORS.length - 1) {
+        onChangeFloor(FLOORS[currentIdx + 1]);
+      } else if (dx > 0 && currentIdx > 0) {
+        onChangeFloor(FLOORS[currentIdx - 1]);
+      }
+    }
+  };
+
+  const toggleEditLayout = () => {
+    if (isEditingLayout) {
+      setIsEditingLayout(false);
+      return;
+    }
+    setIsEditingLayout(true);
+    setViewMode('map');
+    setShowAllInGrid(false);
+    setSearchQuery('');
+  };
+
+  return (
+    <div
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      className="space-y-2.5 sm:space-y-4 touch-pan-y"
+    >
+      {/* Workspace Summary & Mode Controls */}
+      <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] sm:text-sm text-slate-400">
+          <span>
+            Active:{' '}
+            <strong className="font-mono text-cyan-300 tabular-nums">
+              {totalOccupied}/{tables.length}
+            </strong>
+          </span>
+          <span aria-hidden="true" className="text-cyan-500/40">
+            /
+          </span>
+          <span>
+            Open:{' '}
+            <strong className="font-mono text-emerald-400 tabular-nums">
+              ${activeRevenue.toFixed(2)}
+            </strong>
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <button
+            type="button"
+            onClick={onAddNewTable}
+            className="inline-flex min-h-[34px] sm:min-h-[42px] items-center gap-1 rounded-xl bg-fuchsia-500 px-2.5 sm:px-3.5 py-1 text-[11px] sm:text-xs font-bold text-white transition-colors hover:bg-fuchsia-400 cyber-glow-magenta whitespace-nowrap shrink-0"
+          >
+            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            Add Table
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleEditLayout}
+            className={`inline-flex min-h-[34px] sm:min-h-[42px] items-center gap-1 rounded-xl border px-2.5 sm:px-3.5 py-1 text-[11px] sm:text-xs font-semibold transition-colors whitespace-nowrap shrink-0 ${
+              isEditingLayout
+                ? 'border-emerald-400 bg-emerald-400 text-slate-950 cyber-glow-emerald'
+                : 'border-cyan-500/30 bg-[#0B101D] text-cyan-100 hover:border-cyan-400/70'
+            }`}
+          >
+            {isEditingLayout ? (
+              <>
+                <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                Done
+              </>
+            ) : (
+              <>
+                <Edit3 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-cyan-400" />
+                Edit
+              </>
+            )}
+          </button>
+
+          {!isEditingLayout && (
+            <div className="flex items-center rounded-xl border border-cyan-500/25 bg-[#0B101D] p-0.5 sm:p-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('map');
+                  setShowAllInGrid(false);
+                }}
+                className={`inline-flex min-h-[30px] sm:min-h-[36px] items-center gap-1 rounded-lg px-2 sm:px-3 text-[11px] sm:text-xs font-bold transition-colors whitespace-nowrap ${
+                  viewMode === 'map'
+                    ? 'bg-cyan-400 text-slate-950 cyber-glow-cyan'
+                    : 'text-slate-400 hover:text-cyan-200'
+                }`}
+              >
+                <MapIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                Map
+              </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('grid')}
+                  className={`inline-flex min-h-[30px] sm:min-h-[36px] items-center gap-1 rounded-lg px-2 sm:px-2.5 text-[11px] sm:text-xs font-bold transition-colors whitespace-nowrap ${
+                    viewMode === 'grid'
+                      ? 'bg-cyan-400 text-slate-950 cyber-glow-cyan'
+                      : 'text-slate-400 hover:text-cyan-200'
+                  }`}
+                >
+                  <LayoutGrid className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                  Grid
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('list')}
+                  className={`inline-flex min-h-[30px] sm:min-h-[36px] items-center gap-1 rounded-lg px-2 sm:px-2.5 text-[11px] sm:text-xs font-bold transition-colors whitespace-nowrap ${
+                    viewMode === 'list'
+                      ? 'bg-cyan-400 text-slate-950 cyber-glow-cyan'
+                      : 'text-slate-400 hover:text-cyan-200'
+                  }`}
+                >
+                  <List className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                  List
+                </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Floor Switcher & Quick Table # Lookup */}
+      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        <div className="grid flex-1 min-w-[220px] grid-cols-3 gap-1 rounded-xl border border-cyan-500/25 bg-[#0B101D] p-0.5 sm:p-1">
+          {FLOORS.map((floor) => {
+            const floorTables = tables.filter((t) => t.floor === floor);
+            const floorOcc = floorTables.filter((t) => t.status === 'occupied').length;
+            const active = !showAllInGrid && !normalizedQuery && selectedFloor === floor;
+
+            return (
+              <button
+                key={floor}
+                type="button"
+                onClick={() => {
+                  setShowAllInGrid(false);
+                  setSearchQuery('');
+                  onChangeFloor(floor);
+                }}
+                className={`flex min-h-[32px] sm:min-h-[40px] items-center justify-center gap-1 sm:gap-1.5 rounded-lg px-1.5 sm:px-2.5 text-[11px] sm:text-xs font-bold transition-colors whitespace-nowrap font-display tracking-wide ${
+                  active
+                    ? 'bg-cyan-400 text-slate-950 cyber-glow-cyan'
+                    : 'text-slate-300 hover:bg-cyan-500/10 hover:text-cyan-200'
+                }`}
+              >
+                <span>{floor}</span>
+                <span
+                  className={`font-mono text-[10px] sm:text-[11px] tabular-nums ${
+                    active ? 'text-slate-900/80' : 'text-cyan-400/70'
+                  }`}
+                >
+                  {floorOcc}/{floorTables.length}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {!isEditingLayout && (
+          <div className="relative flex-1 sm:flex-none min-w-[160px] sm:w-52">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-cyan-400/70" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && displayedTables.length > 0) {
+                  onSelectTable(displayedTables[0]);
+                }
+              }}
+              placeholder="Jump Table # or guest..."
+              aria-label="Search table number or guest"
+              className="w-full min-h-[36px] sm:min-h-[44px] rounded-xl border border-cyan-500/25 bg-[#0B101D] pl-8 pr-7 text-xs font-medium text-slate-100 placeholder-slate-500 focus:border-cyan-400 focus:outline-none"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear table search"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:text-slate-100"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {viewMode !== 'map' && !isEditingLayout && (
+          <button
+            type="button"
+            onClick={() => setShowAllInGrid((v) => !v)}
+            className={`min-h-[36px] sm:min-h-[44px] rounded-xl border px-3 sm:px-4 text-[11px] sm:text-xs font-bold transition-colors whitespace-nowrap shrink-0 ${
+              showAllInGrid
+                ? 'border-fuchsia-400 bg-fuchsia-500 text-white cyber-glow-magenta'
+                : 'border-cyan-500/25 bg-[#0B101D] text-cyan-100 hover:border-cyan-400/60'
+            }`}
+          >
+            All Floors
+          </button>
+        )}
+      </div>
+
+      {/* Main Floor View */}
+      {viewMode === 'map' && !normalizedQuery ? (
+        <FloorMapCanvas
+          floor={selectedFloor}
+          tables={displayedTables}
+          settings={settings}
+          isEditing={isEditingLayout}
+          onSelectTable={(t) =>
+            isEditingLayout ? onEditTable(t) : onSelectTable(t)
+          }
+          onMoveTable={onMoveTable}
+        />
+      ) : viewMode === 'list' ? (
+        <div className="divide-y divide-cyan-500/15 rounded-2xl border border-cyan-500/25 bg-[#0B101D] overflow-hidden">
+          {displayedTables.length === 0 ? (
+            <p className="p-6 text-center text-xs text-slate-400">
+              No matching tables found.
+            </p>
+          ) : (
+            displayedTables.map((table) => {
+              const isOccupied = table.status === 'occupied';
+              const total = table.orders.reduce(
+                (s, o) => s + o.unitPrice * o.quantity,
+                0
+              );
+              return (
+                <button
+                  key={table.id}
+                  type="button"
+                  onClick={() =>
+                    isEditingLayout ? onEditTable(table) : onSelectTable(table)
+                  }
+                  className="flex min-h-[50px] sm:min-h-[58px] w-full items-center justify-between gap-2.5 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 text-left transition-colors hover:bg-cyan-500/[0.06]"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      {table.tableNumber && (
+                        <span className="rounded border border-cyan-400/50 bg-cyan-500/15 px-1.5 py-0.5 font-mono text-[11px] font-bold text-cyan-300">
+                          #{table.tableNumber}
+                        </span>
+                      )}
+                      <span className="font-bold text-sm text-slate-100 truncate font-display">
+                        {table.name}
+                      </span>
+                      <span className="text-[11px] text-slate-400 shrink-0">
+                        {table.floor} · {table.zone}
+                      </span>
+                    </div>
+                    {isOccupied && table.seatedAt ? (
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
+                        <TimerDisplay
+                          seatedAt={table.seatedAt}
+                          longStayAlertMinutes={settings.longStayAlertMinutes}
+                          timeLimitMinutes={table.timeLimitMinutes}
+                          compact
+                        />
+                        {table.guestName && (
+                          <span className="text-slate-300 truncate">
+                            · {table.guestName}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="mt-0.5 text-[11px] text-slate-500">
+                        Available · {table.seats} seats
+                      </p>
+                    )}
+                  </div>
+                  <div className="shrink-0 text-right">
+                    {isOccupied ? (
+                      <span className="font-mono text-sm font-bold text-emerald-400 tabular-nums">
+                        ${total.toFixed(2)}
+                      </span>
+                    ) : (
+                      <span className="rounded-lg border border-cyan-500/25 px-2.5 py-1 text-[11px] font-semibold text-cyan-300">
+                        Seat
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
+          {displayedTables.map((table) => {
+            const isOccupied = table.status === 'occupied';
+            const ordersList = table.orders || [];
+            const total = ordersList.reduce(
+              (s, o) => s + o.unitPrice * o.quantity,
+              0
+            );
+            const hookahCount = ordersList
+              .filter((o) => o.category === 'hookah' || o.category === 'refill')
+              .reduce((s, o) => s + o.quantity, 0);
+
+            const orderSummary = ordersList
+              .map((o) =>
+                o.flavors
+                  ? `${o.quantity}× ${o.flavors.join('+')}`
+                  : `${o.quantity}× ${o.name}`
+              )
+              .slice(0, 2)
+              .join(', ');
+
+            return (
+              <button
+                key={table.id}
+                type="button"
+                onClick={() =>
+                  isEditingLayout ? onEditTable(table) : onSelectTable(table)
+                }
+                className={`flex min-h-[126px] sm:min-h-[164px] flex-col justify-between rounded-xl sm:rounded-2xl border p-3 sm:p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
+                  isOccupied
+                    ? 'border-cyan-400/50 bg-[#0D1629] hover:border-cyan-300 cyber-glow-cyan'
+                    : 'border-cyan-500/20 bg-[#0B101D] hover:border-cyan-400/55'
+                }`}
+              >
+                <div>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <h3 className="text-lg font-bold text-slate-100 truncate font-display tracking-wide">
+                      {table.tableNumber ? `#${table.tableNumber} · ${table.name}` : table.name}
+                    </h3>
+                    <span className="text-xs text-cyan-300/70 whitespace-nowrap shrink-0">
+                      {table.floor} · {table.zone}
+                    </span>
+                  </div>
+
+                  {isOccupied && table.seatedAt ? (
+                    <div className="mt-2.5 space-y-2">
+                      <TimerDisplay
+                        seatedAt={table.seatedAt}
+                        longStayAlertMinutes={settings.longStayAlertMinutes}
+                        timeLimitMinutes={table.timeLimitMinutes}
+                        compact
+                      />
+
+                      <p className="flex items-center gap-1.5 text-xs text-slate-300 truncate">
+                        <Users className="h-3.5 w-3.5 shrink-0 text-cyan-400/80" />
+                        <span>
+                          Party of {table.partySize}
+                          {table.guestName ? ` · ${table.guestName}` : ''}
+                          {table.serverName ? ` · ${table.serverName}` : ''}
+                        </span>
+                      </p>
+
+                      <p className="line-clamp-2 text-xs text-slate-400">
+                        {ordersList.length > 0 ? orderSummary : 'No orders yet'}
+                        {ordersList.length > 2
+                          ? ` (+${ordersList.length - 2} more)`
+                          : ''}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="mt-6 text-xs text-slate-400">
+                      {table.seats} seats · Available — tap to seat party
+                    </p>
+                  )}
+                </div>
+
+                {isOccupied ? (
+                  <div className="mt-3 flex items-center justify-between border-t border-cyan-500/15 pt-2.5 text-xs">
+                    <span className="text-cyan-200/70 font-mono">
+                      {hookahCount} hookah{hookahCount === 1 ? '' : 's'}
+                    </span>
+                    <span className="font-mono text-sm font-bold text-emerald-400 tabular-nums">
+                      ${total.toFixed(2)}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="mt-3 flex items-center justify-between border-t border-cyan-500/10 pt-2.5 text-xs text-slate-500">
+                    <span>Ready</span>
+                    <span>{table.shape}</span>
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
