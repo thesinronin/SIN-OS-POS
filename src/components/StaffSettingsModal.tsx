@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Download, Monitor, Printer, QrCode, RotateCcw, Save, Sparkles, Users, Volume2, Wifi, X } from 'lucide-react';
+import { Crown, Download, Monitor, Printer, QrCode, RotateCcw, Save, Sparkles, Users, Volume2, Wifi, X } from 'lucide-react';
 import type {
   ActiveStaffMember,
   AlertMode,
@@ -77,6 +77,24 @@ export const StaffSettingsModal: React.FC<StaffSettingsModalProps> = ({
   const [autoPrint, setAutoPrint] = useState(
     Boolean(settings.autoPrintKitchenTicket)
   );
+  const [enableVipPrinter, setEnableVipPrinter] = useState(
+    Boolean(settings.enableVipPrinter)
+  );
+  const [vipPrinterMode, setVipPrinterMode] = useState<PrinterMode>(
+    settings.vipPrinterMode || 'network'
+  );
+  const [vipPrinterIp, setVipPrinterIp] = useState(
+    settings.vipPrinterIp || ''
+  );
+  const [vipPrinterPort, setVipPrinterPort] = useState(
+    String(settings.vipPrinterPort || 9100)
+  );
+  const [vipPrinterWidth, setVipPrinterWidth] = useState<PrinterPaperWidth>(
+    settings.vipPrinterWidth || '80mm'
+  );
+  const [autoPrintVip, setAutoPrintVip] = useState(
+    Boolean(settings.autoPrintVipTicket)
+  );
   const [confirmReset, setConfirmReset] = useState(false);
   const [detectedIp, setDetectedIp] = useState('');
 
@@ -94,6 +112,12 @@ export const StaffSettingsModal: React.FC<StaffSettingsModalProps> = ({
     setPrinterPort(String(settings.kitchenPrinterPort || 9100));
     setPrinterWidth(settings.kitchenPrinterWidth || '80mm');
     setAutoPrint(Boolean(settings.autoPrintKitchenTicket));
+    setEnableVipPrinter(Boolean(settings.enableVipPrinter));
+    setVipPrinterMode(settings.vipPrinterMode || 'network');
+    setVipPrinterIp(settings.vipPrinterIp || '');
+    setVipPrinterPort(String(settings.vipPrinterPort || 9100));
+    setVipPrinterWidth(settings.vipPrinterWidth || '80mm');
+    setAutoPrintVip(Boolean(settings.autoPrintVipTicket));
     setConfirmReset(false);
 
     detectDeviceWifiIp().then(setDetectedIp).catch(() => {});
@@ -119,6 +143,12 @@ export const StaffSettingsModal: React.FC<StaffSettingsModalProps> = ({
       kitchenPrinterPort: Math.max(1, parseInt(printerPort, 10) || 9100),
       kitchenPrinterWidth: printerWidth,
       autoPrintKitchenTicket: autoPrint,
+      enableVipPrinter,
+      vipPrinterMode,
+      vipPrinterIp: vipPrinterIp.trim(),
+      vipPrinterPort: Math.max(1, parseInt(vipPrinterPort, 10) || 9100),
+      vipPrinterWidth,
+      autoPrintVipTicket: autoPrintVip,
     });
     onClose();
   };
@@ -516,6 +546,100 @@ export const StaffSettingsModal: React.FC<StaffSettingsModalProps> = ({
                 Auto-print new LAN tickets
               </label>
             </div>
+          </div>
+
+          {/* Dedicated VIP Station Thermal Printer */}
+          <div className="space-y-2.5 border-t border-cyan-500/20 pt-4">
+            <div className="flex items-center justify-between">
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-fuchsia-300">
+                <Crown className="h-3.5 w-3.5 text-fuchsia-400" />
+                Dedicated VIP Station Thermal Printer
+              </span>
+              <label className="flex items-center gap-1.5 text-xs text-fuchsia-300 cursor-pointer font-bold">
+                <input
+                  type="checkbox"
+                  checked={enableVipPrinter}
+                  onChange={(e) => setEnableVipPrinter(e.target.checked)}
+                  className="h-4 w-4 rounded border-fuchsia-500/40 bg-slate-900 accent-fuchsia-400"
+                />
+                Enable VIP Printer
+              </label>
+            </div>
+
+            {enableVipPrinter && (
+              <div className="space-y-2.5 rounded-xl border border-fuchsia-500/25 bg-fuchsia-500/[0.04] p-3">
+                <div className="grid grid-cols-3 gap-1.5">
+                  {(
+                    [
+                      { id: 'system', label: 'Android / USB' },
+                      { id: 'network', label: 'LAN IP :9100' },
+                      { id: 'bluetooth', label: 'Bluetooth BLE' },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setVipPrinterMode(opt.id)}
+                      className={`min-h-[38px] rounded-xl border px-2 text-xs font-bold transition-colors ${
+                        vipPrinterMode === opt.id
+                          ? 'border-fuchsia-400 bg-fuchsia-500 text-white cyber-glow-magenta'
+                          : 'border-fuchsia-500/25 bg-[#060913] text-slate-300'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+
+                {vipPrinterMode === 'network' && (
+                  <div className="grid grid-cols-3 gap-2">
+                    <input
+                      type="text"
+                      value={vipPrinterIp}
+                      onChange={(e) => setVipPrinterIp(e.target.value)}
+                      placeholder="VIP Printer IP (192.168.1.51)"
+                      className="col-span-2 min-h-[42px] rounded-xl border border-fuchsia-500/25 bg-[#060913] px-3 py-2 font-mono text-xs text-slate-100 placeholder-slate-500 focus:border-fuchsia-400 focus:outline-none"
+                    />
+                    <input
+                      type="number"
+                      value={vipPrinterPort}
+                      onChange={(e) => setVipPrinterPort(e.target.value)}
+                      placeholder="9100"
+                      className="min-h-[42px] rounded-xl border border-fuchsia-500/25 bg-[#060913] px-3 py-2 font-mono text-xs text-slate-100 focus:border-fuchsia-400 focus:outline-none"
+                    />
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between gap-3 pt-1">
+                  <div className="flex items-center gap-1.5">
+                    {(['80mm', '58mm'] as PrinterPaperWidth[]).map((w) => (
+                      <button
+                        key={w}
+                        type="button"
+                        onClick={() => setVipPrinterWidth(w)}
+                        className={`min-h-[34px] rounded-lg border px-3 font-mono text-xs font-bold ${
+                          vipPrinterWidth === w
+                            ? 'border-fuchsia-400 bg-fuchsia-500/20 text-fuchsia-200'
+                            : 'border-fuchsia-500/20 bg-[#060913] text-slate-400'
+                        }`}
+                      >
+                        {w}
+                      </button>
+                    ))}
+                  </div>
+
+                  <label className="flex items-center gap-2 text-xs text-fuchsia-200 cursor-pointer font-semibold">
+                    <input
+                      type="checkbox"
+                      checked={autoPrintVip}
+                      onChange={(e) => setAutoPrintVip(e.target.checked)}
+                      className="h-4 w-4 rounded border-fuchsia-500/40 bg-slate-900 accent-fuchsia-400"
+                    />
+                    Auto-print VIP orders
+                  </label>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Layout & Flavors Device Saver */}

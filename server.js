@@ -384,6 +384,7 @@ function buildEscPosBuffer(ticket, paperWidth = "80mm") {
     hour: "numeric",
     minute: "2-digit"
   });
+  const isVip = ticket.isVipTicket || ticket.zone === "VIP" || (ticket.tableName || "").toLowerCase().includes("vip");
   const chunks = [
     // Initialize printer
     ESC,
@@ -396,7 +397,7 @@ function buildEscPosBuffer(ticket, paperWidth = "80mm") {
     ESC,
     69,
     1,
-    ...line("SIN-OS KITCHEN"),
+    ...line(isVip ? "*** VIP STATION PREP ***" : "SIN-OS KITCHEN"),
     // Double width + double height for Table #
     GS,
     33,

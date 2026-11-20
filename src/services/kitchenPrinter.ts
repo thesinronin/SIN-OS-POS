@@ -33,6 +33,8 @@ export function buildEscPosBuffer(
     minute: '2-digit',
   });
 
+  const isVip = ticket.isVipTicket || ticket.zone === 'VIP' || (ticket.tableName || '').toLowerCase().includes('vip');
+
   const chunks: number[] = [
     // Initialize printer
     ESC, 0x40,
@@ -40,7 +42,7 @@ export function buildEscPosBuffer(
     ESC, 0x61, 0x01,
     // Emphasized on
     ESC, 0x45, 0x01,
-    ...line('SIN-OS KITCHEN'),
+    ...line(isVip ? '*** VIP STATION PREP ***' : 'SIN-OS KITCHEN'),
     // Double width + double height for Table #
     GS, 0x21, 0x11,
     ...line(`TABLE #${ticket.tableNumber || ticket.tableName}`),

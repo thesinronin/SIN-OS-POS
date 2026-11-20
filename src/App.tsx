@@ -303,6 +303,13 @@ export default function App() {
             },
           ];
 
+    const isVipTicket =
+      table.zone === 'VIP' ||
+      table.seatingTier === 'vip_allday' ||
+      table.seatingTier === 'vip_onetime' ||
+      (table.tableNumber || '').toLowerCase().includes('vip') ||
+      table.name.toLowerCase().includes('vip');
+
     return {
       tableId: table.id,
       tableNumber: table.tableNumber || table.name,
@@ -313,6 +320,7 @@ export default function App() {
       serverName: table.serverName || staff.name,
       printedAt: Date.now(),
       items,
+      isVipTicket,
     };
   };
 
@@ -351,18 +359,32 @@ export default function App() {
     const targetOrders = getPrintableOrders(table, specificOrders);
     const orderIds = targetOrders.map((o) => o.id);
     const ticket = buildKitchenTicket(table, specificOrders);
-    const mode = settings.kitchenPrinterMode || 'system';
-    const width = settings.kitchenPrinterWidth || '80mm';
+
+    const isVip = ticket.isVipTicket;
+    const useVipPrinter = isVip && settings.enableVipPrinter;
+
+    const mode = useVipPrinter
+      ? settings.vipPrinterMode || 'network'
+      : settings.kitchenPrinterMode || 'system';
+    const width = useVipPrinter
+      ? settings.vipPrinterWidth || '80mm'
+      : settings.kitchenPrinterWidth || '80mm';
+    const targetIp = useVipPrinter
+      ? settings.vipPrinterIp
+      : settings.kitchenPrinterIp;
+    const targetPort = useVipPrinter
+      ? settings.vipPrinterPort || 9100
+      : settings.kitchenPrinterPort || 9100;
 
     if (mode === 'network') {
-      if (!settings.kitchenPrinterIp) {
+      if (!targetIp) {
         openKitchenPrint(table, specificOrders);
         return;
       }
       const res = await printViaNetworkEscPos(
         ticket,
-        settings.kitchenPrinterIp,
-        settings.kitchenPrinterPort || 9100,
+        targetIp,
+        targetPort,
         width
       );
       if (res.ok) {
@@ -406,13 +428,6 @@ export default function App() {
     table: LoungeTable,
     orders: OrderItem[]
   ) => {
-    if (
-      !settings.autoPrintKitchenTicket ||
-      settings.kitchenPrinterMode !== 'network' ||
-      !settings.kitchenPrinterIp
-    ) {
-      return;
-    }
     const prepOrders = orders.filter(
       (o) =>
         o.category === 'hookah' ||
@@ -423,6 +438,39 @@ export default function App() {
     if (prepOrders.length === 0) return;
 
     const ticket = buildKitchenTicket(table, prepOrders);
+    const isVip = ticket.isVipTicket;
+
+    if (isVip && settings.enableVipPrinter) {
+      if (!settings.autoPrintVipTicket) return;
+      const vipIp = settings.vipPrinterIp?.trim();
+      if (!vipIp || settings.vipPrinterMode !== 'network') return;
+
+      printViaNetworkEscPos(
+        ticket,
+        vipIp,
+        settings.vipPrinterPort || 9100,
+        settings.vipPrinterWidth || '80mm'
+      )
+        .then((res) => {
+          if (res.ok) {
+            markOrdersPrinted(
+              table.id,
+              prepOrders.map((o) => o.id)
+            );
+          }
+        })
+        .catch(() => {});
+      return;
+    }
+
+    if (
+      !settings.autoPrintKitchenTicket ||
+      settings.kitchenPrinterMode !== 'network' ||
+      !settings.kitchenPrinterIp
+    ) {
+      return;
+    }
+
     printViaNetworkEscPos(
       ticket,
       settings.kitchenPrinterIp,

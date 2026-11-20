@@ -17,6 +17,8 @@ export const ThermalReceiptPrintView: React.FC<ThermalReceiptPrintViewProps> = (
     minute: '2-digit',
   });
 
+  const isVip = ticket.isVipTicket || ticket.zone === 'VIP' || (ticket.tableName || '').toLowerCase().includes('vip');
+
   return (
     <div
       id="thermal-kitchen-receipt"
@@ -24,7 +26,7 @@ export const ThermalReceiptPrintView: React.FC<ThermalReceiptPrintViewProps> = (
       className="hidden print:block bg-white text-black font-mono text-[12px] leading-tight"
     >
       <div className="text-center border-b-2 border-dashed border-black pb-2 mb-2">
-        <div className="text-xs font-bold tracking-widest">SIN-OS KITCHEN</div>
+        <div className="text-xs font-bold tracking-widest">{isVip ? '*** VIP STATION PREP ***' : 'SIN-OS KITCHEN'}</div>
         <div className="mt-1 text-2xl font-black tracking-wide">
           TABLE #{ticket.tableNumber || ticket.tableName}
         </div>

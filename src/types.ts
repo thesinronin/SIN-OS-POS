@@ -137,6 +137,13 @@ export interface LoungeSettings {
   kitchenPrinterPort?: number;
   kitchenPrinterWidth?: PrinterPaperWidth;
   autoPrintKitchenTicket?: boolean;
+  // Dedicated VIP Station Thermal Printer Settings
+  enableVipPrinter?: boolean;
+  vipPrinterMode?: PrinterMode;
+  vipPrinterIp?: string;
+  vipPrinterPort?: number;
+  vipPrinterWidth?: PrinterPaperWidth;
+  autoPrintVipTicket?: boolean;
 }
 
 export interface KitchenTicketItem {
@@ -159,6 +166,7 @@ export interface KitchenTicketPayload {
   paymentNotes?: string;
   printedAt: number;
   items: KitchenTicketItem[];
+  isVipTicket?: boolean;
 }
 
 export interface BatchReport {
