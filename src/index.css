@@ -22,45 +22,60 @@
 
   /* Theme 2: Star Trek (LCARS Style) */
   body.theme-startrek {
-    background-color: #080512;
+    background-color: #04020A;
     background-image:
-      radial-gradient(circle at 10% 0%, rgba(245, 158, 11, 0.18), transparent 45%),
-      radial-gradient(circle at 90% 10%, rgba(192, 132, 252, 0.16), transparent 45%);
+      radial-gradient(circle at 10% 0%, rgba(245, 158, 11, 0.22), transparent 45%),
+      radial-gradient(circle at 90% 10%, rgba(192, 132, 252, 0.2), transparent 45%);
     color: #FFEDD5;
+    font-family: 'Space Grotesk', 'Chakra Petch', sans-serif;
   }
   body.theme-startrek button {
-    border-radius: 9999px;
+    border-radius: 9999px !important;
+    font-family: 'Space Grotesk', 'Chakra Petch', sans-serif !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+  }
+  body.theme-startrek .floor-table-node {
+    border-radius: 9999px 16px 16px 9999px !important;
+    border-left: 10px solid #F59E0B !important;
+    border-top: 2px solid #F97316 !important;
+    border-right: 2px solid #C084FC !important;
+    border-bottom: 2px solid #38BDF8 !important;
+    background-color: #0E0720 !important;
   }
   body.theme-startrek .cyber-glow-cyan {
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.35), inset 0 1px 0 rgba(254, 215, 170, 0.25);
+    box-shadow: 0 0 22px rgba(245, 158, 11, 0.45), inset 0 2px 2px rgba(254, 215, 170, 0.4) !important;
     background-color: #F59E0B !important;
-    color: #080512 !important;
+    color: #04020A !important;
   }
 
   /* Theme 3: Lord of the Rings (Middle-earth Style) */
   body.theme-lotr {
-    background-color: #0E110C;
+    background-color: #090C08;
     background-image:
-      radial-gradient(circle at 15% 0%, rgba(234, 179, 8, 0.14), transparent 45%),
-      radial-gradient(circle at 85% 5%, rgba(34, 197, 94, 0.12), transparent 45%);
+      radial-gradient(circle at 15% 0%, rgba(234, 179, 8, 0.18), transparent 45%),
+      radial-gradient(circle at 85% 5%, rgba(34, 197, 94, 0.15), transparent 45%);
     color: #FEF3C7;
-    font-family: 'Georgia', serif;
+    font-family: 'Cinzel', 'Georgia', serif;
   }
   body.theme-lotr button {
     border-radius: 0.5rem;
-    border-color: rgba(234, 179, 8, 0.4);
+    border: 1px solid rgba(234, 179, 8, 0.45);
+    font-family: 'Cinzel', 'Georgia', serif !important;
   }
   body.theme-lotr .cyber-glow-cyan {
-    box-shadow: 0 0 20px rgba(234, 179, 8, 0.35), inset 0 1px 0 rgba(254, 240, 138, 0.25);
-    background-color: #EAB308 !important;
-    color: #0E110C !important;
+    box-shadow: 0 0 25px rgba(234, 179, 8, 0.45), inset 0 2px 2px rgba(254, 240, 138, 0.4) !important;
+    background-color: #D97706 !important;
+    color: #FEF3C7 !important;
+    border: 2px solid #F59E0B !important;
   }
 
   /* Elven Mallorn Leaf shape for tables in Lord of the Rings theme */
   body.theme-lotr .floor-table-node {
-    border-radius: 4px 82% 4px 82% !important;
-    border: 2px solid rgba(234, 179, 8, 0.65) !important;
-    box-shadow: inset 0 0 14px rgba(34, 197, 94, 0.22), 0 6px 20px rgba(0, 0, 0, 0.75) !important;
+    border-radius: 2px 84% 2px 84% !important;
+    border: 2px solid rgba(234, 179, 8, 0.75) !important;
+    box-shadow: inset 0 0 16px rgba(34, 197, 94, 0.25), 0 8px 25px rgba(0, 0, 0, 0.85) !important;
+    background: linear-gradient(135deg, #10190E 0%, #080D07 100%) !important;
   }
 
   /* Theme 4: Barney (Purple & Green Style) */

@@ -591,6 +591,15 @@ export default function App() {
           >
             <span className="h-2 w-2 md:h-2.5 md:w-2.5 rotate-45 bg-fuchsia-500 shadow-[0_0_10px_rgba(217,70,239,0.9)]" />
             SIN-OS
+            {settings.theme === 'lotr' ? (
+              <span className="ml-2 font-normal text-[11px] text-amber-300/90 font-serif tracking-widest hidden sm:inline">
+                ✦ Elen síla lúmenn' omentielvo ✦ ᚠᚢᚦᚨᚱᚲ
+              </span>
+            ) : settings.theme === 'startrek' ? (
+              <span className="ml-2 font-mono text-[10px] text-amber-400/90 tracking-widest uppercase hidden sm:inline">
+                ✦ LCARS 77801.2 ✦
+              </span>
+            ) : null}
           </button>
 
           <nav
