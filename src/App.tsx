@@ -759,28 +759,12 @@ export default function App() {
             settings={settings}
             staffName={staff.name}
             onAddOrderToTable={handleAddOrder}
+            onSeatTableWithOrders={(tableId, orders) => {
+              const targetTable = tables.find((t) => t.id === tableId);
+              const defaultTier = targetTable?.zone === 'Bar' ? 'bar_onetime' : targetTable?.zone === 'VIP' ? 'vip_onetime' : 'downstairs';
+              handleSeatTable(tableId, 1, 'Store Tab Guest', defaultTier, false, [], orders);
+            }}
             onCheckoutCounterSale={(session) => {
-              const now = Date.now();
-              const counterSession = {
-                id: `sess-${now}-counter`,
-                tableName: session.tableName,
-                floor: 'Floor 1' as TableFloor,
-                zone: 'Lounge' as TableZone,
-                partySize: 1,
-                guestName: 'Walk-in Counter Guest',
-                serverName: staff.name,
-                seatedAt: now,
-                closedAt: now,
-                durationMinutes: 1,
-                orders: session.orders,
-                subtotal: session.subtotal,
-                tax: session.tax,
-                total: session.total,
-                paymentMethod: session.paymentMethod,
-                cashPaid: session.cashPaid,
-                cardPaid: session.cardPaid,
-              };
-              // Add completed session to history via WebSocket or state
               checkoutTable('', session);
             }}
           />

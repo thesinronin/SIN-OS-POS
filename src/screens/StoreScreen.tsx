@@ -26,6 +26,7 @@ interface StoreScreenProps {
   settings: LoungeSettings;
   staffName: string;
   onAddOrderToTable: (tableId: string, order: OrderItem) => void;
+  onSeatTableWithOrders?: (tableId: string, orders: OrderItem[]) => void;
   onCheckoutCounterSale: (
     session: {
       tableName: string;
@@ -164,12 +165,20 @@ export const StoreScreen: React.FC<StoreScreenProps> = ({
 
   const handleAssignCartToTable = () => {
     if (!selectedTargetTableId || cart.length === 0) return;
-    for (const item of cart) {
-      onAddOrderToTable(selectedTargetTableId, item);
+    const targetTable = tables.find((t) => t.id === selectedTargetTableId);
+    if (!targetTable) return;
+
+    if (targetTable.status === 'available' && onSeatTableWithOrders) {
+      onSeatTableWithOrders(selectedTargetTableId, cart);
+    } else {
+      for (const item of cart) {
+        onAddOrderToTable(selectedTargetTableId, item);
+      }
     }
+    const tableName = targetTable.tableNumber ? `#${targetTable.tableNumber} ${targetTable.name}` : targetTable.name;
     setCart([]);
     setSelectedTargetTableId('');
-    alert('Items assigned to table tab successfully!');
+    alert(`Store tab attached to ${tableName} successfully!`);
   };
 
   const handleCounterCheckout = () => {
@@ -370,11 +379,11 @@ export const StoreScreen: React.FC<StoreScreenProps> = ({
               </div>
             </div>
 
-            {/* Assign to Active Table */}
-            {activeTables.length > 0 && cart.length > 0 && (
+            {/* Assign / Attach Store Tab to Table */}
+            {cart.length > 0 && (
               <div className="space-y-2 border-t border-cyan-500/20 pt-3">
                 <label className="block text-xs font-semibold text-cyan-200/80">
-                  Assign Cart Items to Table Tab:
+                  Attach Store Cart to Table Tab:
                 </label>
                 <div className="flex gap-2">
                   <select
@@ -382,10 +391,10 @@ export const StoreScreen: React.FC<StoreScreenProps> = ({
                     onChange={(e) => setSelectedTargetTableId(e.target.value)}
                     className="flex-1 rounded-xl border border-cyan-500/30 bg-[#060913] px-3 py-2 text-xs text-slate-100 focus:border-cyan-400 focus:outline-none"
                   >
-                    <option value="">-- Select Active Table --</option>
-                    {activeTables.map((t) => (
+                    <option value="">-- Select Table to Attach Store Tab --</option>
+                    {tables.map((t) => (
                       <option key={t.id} value={t.id}>
-                        {t.tableNumber ? `#${t.tableNumber} · ${t.name}` : t.name} ({t.floor})
+                        {t.tableNumber ? `#${t.tableNumber} · ${t.name}` : t.name} ({t.floor}) — {t.status === 'occupied' ? 'Occupied Tab' : 'Available (Open New Tab)'}
                       </option>
                     ))}
                   </select>
@@ -393,9 +402,9 @@ export const StoreScreen: React.FC<StoreScreenProps> = ({
                     type="button"
                     disabled={!selectedTargetTableId}
                     onClick={handleAssignCartToTable}
-                    className="inline-flex min-h-[38px] items-center gap-1 rounded-xl bg-cyan-400 px-3 text-xs font-bold text-slate-950 hover:bg-cyan-300 disabled:opacity-40"
+                    className="inline-flex min-h-[38px] items-center gap-1 rounded-xl bg-cyan-400 px-3.5 text-xs font-bold text-slate-950 hover:bg-cyan-300 disabled:opacity-40 whitespace-nowrap cyber-glow-cyan"
                   >
-                    Assign
+                    Attach Tab
                   </button>
                 </div>
               </div>
