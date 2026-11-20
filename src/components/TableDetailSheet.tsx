@@ -211,7 +211,7 @@ export const TableDetailSheet: React.FC<TableDetailSheetProps> = ({
       (sum, o) => sum + o.unitPrice * o.quantity,
       0
     );
-    const taxRate = settings.salesTaxRate || 0.07;
+    const taxRate = settings.salesTaxRate !== undefined ? settings.salesTaxRate : 0.0775;
     const salesTax = ordersToSum
       .filter((o) => o.taxable)
       .reduce((sum, o) => sum + o.unitPrice * o.quantity * taxRate, 0);

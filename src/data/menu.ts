@@ -12,6 +12,7 @@ export const VIP_ONETIME_ALLDAY_UPGRADE_PRICE = 150;
 export const DEFAULT_SETTINGS: LoungeSettings = {
   coalAlertMinutes: 25,
   longStayAlertMinutes: 120,
+  salesTaxRate: 0.0775,
   kitchenPrinterMode: 'system',
   kitchenPrinterIp: '',
   kitchenPrinterPort: 9100,

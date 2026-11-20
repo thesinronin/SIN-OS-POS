@@ -16,6 +16,7 @@ var VIP_ONETIME_ALLDAY_UPGRADE_PRICE = 150;
 var DEFAULT_SETTINGS = {
   coalAlertMinutes: 25,
   longStayAlertMinutes: 120,
+  salesTaxRate: 0.0775,
   kitchenPrinterMode: "system",
   kitchenPrinterIp: "",
   kitchenPrinterPort: 9100,

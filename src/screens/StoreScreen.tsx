@@ -70,7 +70,7 @@ export const StoreScreen: React.FC<StoreScreenProps> = ({
   const availableFlavors = flavors.filter((f) => f.available);
   const activeTables = tables.filter((t) => t.status === 'occupied');
 
-  const taxRate = settings.salesTaxRate || 0.07;
+  const taxRate = settings.salesTaxRate !== undefined ? settings.salesTaxRate : 0.0775;
 
   // Cart Totals
   const subtotal = cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);

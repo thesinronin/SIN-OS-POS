@@ -95,6 +95,9 @@ export const StaffSettingsModal: React.FC<StaffSettingsModalProps> = ({
   const [autoPrintVip, setAutoPrintVip] = useState(
     Boolean(settings.autoPrintVipTicket)
   );
+  const [salesTaxPct, setSalesTaxPct] = useState(
+    String((settings.salesTaxRate !== undefined ? settings.salesTaxRate : 0.0775) * 100)
+  );
   const [confirmReset, setConfirmReset] = useState(false);
   const [detectedIp, setDetectedIp] = useState('');
 
@@ -105,6 +108,9 @@ export const StaffSettingsModal: React.FC<StaffSettingsModalProps> = ({
     setAlertMode(profile.alertMode);
     setTheme(settings.theme || 'cyberpunk');
     setStayMins(String(settings.longStayAlertMinutes));
+    setSalesTaxPct(
+      String((settings.salesTaxRate !== undefined ? settings.salesTaxRate : 0.0775) * 100)
+    );
     setManagerEmail(settings.managerEmail || '');
     setSyncServerIp(settings.syncServerIp || '');
     setPrinterMode(settings.kitchenPrinterMode || 'system');
@@ -135,6 +141,7 @@ export const StaffSettingsModal: React.FC<StaffSettingsModalProps> = ({
     onUpdateSettings({
       coalAlertMinutes: settings.coalAlertMinutes,
       longStayAlertMinutes: Math.max(15, parseInt(stayMins, 10) || 120),
+      salesTaxRate: Math.max(0, Math.min(0.5, (parseFloat(salesTaxPct) || 7.75) / 100)),
       theme,
       managerEmail: managerEmail.trim(),
       syncServerIp: syncServerIp.trim(),
@@ -292,18 +299,36 @@ export const StaffSettingsModal: React.FC<StaffSettingsModalProps> = ({
               ))}
             </div>
 
-            <div>
-              <label className="block text-xs font-medium text-cyan-200/80 mb-1.5">
-                Long Stay Alert (mins)
-              </label>
-              <input
-                type="number"
-                min={15}
-                max={360}
-                value={stayMins}
-                onChange={(e) => setStayMins(e.target.value)}
-                className="w-full min-h-[44px] rounded-xl border border-cyan-500/25 bg-[#060913] px-3.5 py-2 font-mono text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-cyan-200/80 mb-1.5">
+                  Long Stay Alert (mins)
+                </label>
+                <input
+                  type="number"
+                  min={15}
+                  max={360}
+                  value={stayMins}
+                  onChange={(e) => setStayMins(e.target.value)}
+                  className="w-full min-h-[44px] rounded-xl border border-cyan-500/25 bg-[#060913] px-3.5 py-2 font-mono text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-cyan-200/80 mb-1.5">
+                  Sales Tax Rate (%)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  max={50}
+                  value={salesTaxPct}
+                  onChange={(e) => setSalesTaxPct(e.target.value)}
+                  placeholder="7.75"
+                  className="w-full min-h-[44px] rounded-xl border border-cyan-500/25 bg-[#060913] px-3.5 py-2 font-mono text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+                />
+              </div>
             </div>
 
             <div>
