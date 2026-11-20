@@ -5,6 +5,7 @@ import {
   Flame,
   LayoutGrid,
   Settings2,
+  ShoppingBag,
   Volume2,
   X,
 } from 'lucide-react';
@@ -32,6 +33,7 @@ import type {
   TableFloor,
 } from './types';
 import { FloorPlanScreen } from './screens/FloorPlanScreen';
+import { StoreScreen } from './screens/StoreScreen';
 import { HookahStationScreen } from './screens/HookahStationScreen';
 import { AnalyticsScreen } from './screens/AnalyticsScreen';
 import { TableDetailSheet } from './components/TableDetailSheet';
@@ -47,7 +49,7 @@ import { PWAInstallButton } from './components/PWAInstallButton';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { triggerHaptic, useAndroidWakeLock } from './hooks/useAndroidWakeLock';
 
-type Tab = 'tables' | 'station' | 'analytics';
+type Tab = 'tables' | 'store' | 'station' | 'analytics';
 
 const STAFF_STORAGE_KEY = 'emberpos_staff_profile_v1';
 
@@ -619,6 +621,17 @@ export default function App() {
             </button>
             <button
               type="button"
+              onClick={() => setTab('store')}
+              className={`py-1.5 border-b-2 transition-colors whitespace-nowrap shrink-0 font-display tracking-wide ${
+                tab === 'store'
+                  ? 'border-cyan-400 text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.45)]'
+                  : 'border-transparent text-slate-400 hover:text-cyan-200'
+              }`}
+            >
+              Store Menu (+Tax)
+            </button>
+            <button
+              type="button"
               onClick={() => setTab('station')}
               className={`py-1.5 border-b-2 transition-colors whitespace-nowrap shrink-0 font-display tracking-wide ${
                 tab === 'station'
@@ -739,6 +752,40 @@ export default function App() {
           />
         )}
 
+        {tab === 'store' && (
+          <StoreScreen
+            tables={tables}
+            flavors={flavors}
+            settings={settings}
+            staffName={staff.name}
+            onAddOrderToTable={handleAddOrder}
+            onCheckoutCounterSale={(session) => {
+              const now = Date.now();
+              const counterSession = {
+                id: `sess-${now}-counter`,
+                tableName: session.tableName,
+                floor: 'Floor 1' as TableFloor,
+                zone: 'Lounge' as TableZone,
+                partySize: 1,
+                guestName: 'Walk-in Counter Guest',
+                serverName: staff.name,
+                seatedAt: now,
+                closedAt: now,
+                durationMinutes: 1,
+                orders: session.orders,
+                subtotal: session.subtotal,
+                tax: session.tax,
+                total: session.total,
+                paymentMethod: session.paymentMethod,
+                cashPaid: session.cashPaid,
+                cardPaid: session.cardPaid,
+              };
+              // Add completed session to history via WebSocket or state
+              checkoutTable('', session);
+            }}
+          />
+        )}
+
         {tab === 'station' && (
           <HookahStationScreen
             tables={tables}
@@ -768,7 +815,7 @@ export default function App() {
       {/* Mobile Bottom Thumb-Zone Navigation */}
       <nav
         aria-label="Mobile navigation"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 grid min-h-[48px] pb-safe grid-cols-3 border-t border-cyan-500/20 bg-[#070A15]/95 backdrop-blur-md"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 grid min-h-[48px] pb-safe grid-cols-4 border-t border-cyan-500/20 bg-[#070A15]/95 backdrop-blur-md"
       >
         <button
           type="button"
@@ -782,6 +829,20 @@ export default function App() {
         >
           <LayoutGrid className="h-4 w-4" />
           <span>Tables</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic(8);
+            setTab('store');
+          }}
+          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] font-semibold font-display tracking-wide ${
+            tab === 'store' ? 'text-cyan-300' : 'text-slate-400'
+          }`}
+        >
+          <ShoppingBag className="h-4 w-4" />
+          <span>Store</span>
         </button>
 
         <button

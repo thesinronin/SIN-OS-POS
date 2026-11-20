@@ -234,6 +234,16 @@ export const MENU_ITEMS: MenuItem[] = [
   { id: 'r-upgrade-vip', name: 'Upgrade to VIP', category: 'refill', price: 200, description: 'Downstairs / Bar to VIP' },
   { id: 'r-upgrade-vip-allday', name: 'All Day VIP Upgrade', category: 'refill', price: 150, description: 'One Time VIP to All Day' },
   { id: 'r2', name: 'Extra Coconut Coals (3pc)', category: 'refill', price: 0, description: 'Complimentary rotation' },
+
+  // Retail Store Menu Items (+ Sales Tax)
+  { id: 'st-shisha-100g', name: '100g Shisha Pack', category: 'store', price: 10, taxable: true, requiresFlavorSelection: true, description: '100g shisha pack (all flavors & blends + tax)' },
+  { id: 'st-hookah', name: 'Hookah Pipe', category: 'store', price: 69, taxable: true, description: 'Complete hookah set (variable price + tax)' },
+  { id: 'st-ice-hose', name: 'Ice Hose', category: 'store', price: 39, taxable: true, description: 'Chilled ice hose accessory (+ tax)' },
+  { id: 'st-reusable-tip', name: 'Reusable Tip', category: 'store', price: 10, taxable: true, description: 'Washable personal mouthpiece (+ tax)' },
+  { id: 'st-vape', name: 'Vape', category: 'store', price: 39, taxable: true, description: 'Disposable vape (+ tax)' },
+  { id: 'st-wind-shield', name: 'Wind Shield', category: 'store', price: 39, taxable: true, description: 'Bowl wind guard (+ tax)' },
+  { id: 'st-candy-tip', name: 'Candy Tip', category: 'store', price: 5, taxable: true, description: 'Flavored candy tip (+ tax)' },
+  { id: 'st-sarcasm', name: 'Sarcasm', category: 'store', price: 0, taxable: true, description: 'Complimentary extra attitude (+ tax)' },
 ];
 
 export function createInitialTables(now = Date.now()): LoungeTable[] {
