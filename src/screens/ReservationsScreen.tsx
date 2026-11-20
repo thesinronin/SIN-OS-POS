@@ -62,6 +62,7 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
   const [resTimeStr, setResTimeStr] = useState('20:00');
   const [preferredFloor, setPreferredFloor] = useState<TableFloor>('Floor 1');
   const [preferredTier, setPreferredTier] = useState<SeatingTierId>('downstairs');
+  const [bookTableId, setBookTableId] = useState<string>('');
   const [notes, setNotes] = useState('');
 
   // Seating Modal State
@@ -96,11 +97,13 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
       notes: notes.trim() || undefined,
       status: 'scheduled',
       createdBy: staffName,
+      assignedTableId: bookTableId || undefined,
     });
 
     setGuestName('');
     setPhone('');
     setPartySize(4);
+    setBookTableId('');
     setNotes('');
     setIsBookOpen(false);
   };
@@ -298,10 +301,16 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                    <span>Floor: {res.floor || 'Floor 1'}</span>
-                    <span>·</span>
-                    <span className="uppercase">{res.preferredTier || 'Downstairs'}</span>
+                  <div className="flex items-center justify-between gap-2 text-[11px] text-slate-400">
+                    <span>Floor: {res.floor || 'Floor 1'} · <strong className="uppercase">{res.preferredTier || 'Downstairs'}</strong></span>
+                    {res.assignedTableId && (() => {
+                      const assignedT = tables.find(t => t.id === res.assignedTableId);
+                      return assignedT ? (
+                        <span className="rounded border border-cyan-400/50 bg-cyan-500/15 px-1.5 py-0.5 font-mono text-[10px] font-bold text-cyan-300">
+                          Reserved: {assignedT.tableNumber ? `#${assignedT.tableNumber} ${assignedT.name}` : assignedT.name}
+                        </span>
+                      ) : null;
+                    })()}
                   </div>
 
                   {res.notes && (
@@ -328,7 +337,7 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
                       type="button"
                       onClick={() => {
                         setSeatingReservation(res);
-                        setSelectedTableId('');
+                        setSelectedTableId(res.assignedTableId || '');
                       }}
                       className="flex-1 flex min-h-[38px] items-center justify-center gap-1.5 rounded-xl bg-emerald-400 px-3 text-xs font-bold text-slate-950 hover:bg-emerald-300 cyber-glow-emerald"
                     >
@@ -488,6 +497,31 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
                     ))}
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-cyan-200 mb-1">
+                  Assign Specific Table at Booking (Optional)
+                </label>
+                <select
+                  value={bookTableId}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    setBookTableId(selectedId);
+                    const selectedT = tables.find((t) => t.id === selectedId);
+                    if (selectedT) {
+                      setPreferredFloor(selectedT.floor);
+                    }
+                  }}
+                  className="w-full min-h-[42px] rounded-xl border border-cyan-500/30 bg-[#060913] px-3 py-2 font-mono text-xs text-slate-100 focus:border-cyan-400 focus:outline-none"
+                >
+                  <option value="">-- Unassigned (Assign at Seating Time) --</option>
+                  {tables.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.tableNumber ? `#${t.tableNumber} ${t.name}` : t.name} ({t.floor} · {t.seats} seats)
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
