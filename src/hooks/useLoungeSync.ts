@@ -16,12 +16,14 @@ import type {
   CompletedSession,
   FlavorCategory,
   FlavorOption,
+  LoungeReservation,
   LoungeSettings,
   LoungeStateSnapshot,
   LoungeTable,
   OrderItem,
   PaymentMethod,
   PrepStatus,
+  ReservationStatus,
   SeatingTierId,
   StaffProfile,
   TableFloor,
@@ -61,6 +63,7 @@ export function useLoungeSync(staff: StaffProfile) {
     }
     return createInitialFlavors();
   });
+  const [reservations, setReservations] = useState<LoungeReservation[]>([]);
   const [connectionState, setConnectionState] = useState<'connecting' | 'live' | 'reconnecting'>('connecting');
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -121,6 +124,9 @@ export function useLoungeSync(staff: StaffProfile) {
           setLastBatchReport(snapshot.lastBatchReport ?? null);
           if (Array.isArray(snapshot.flavors) && snapshot.flavors.length > 0) {
             setFlavors(snapshot.flavors);
+          }
+          if (Array.isArray(snapshot.reservations)) {
+            setReservations(snapshot.reservations);
           }
         }
       })
@@ -184,6 +190,9 @@ export function useLoungeSync(staff: StaffProfile) {
                 if (Array.isArray(msg.snapshot.flavors)) {
                   setFlavors(msg.snapshot.flavors);
                 }
+                if (Array.isArray(msg.snapshot.reservations)) {
+                  setReservations(msg.snapshot.reservations);
+                }
               }
               break;
             case 'table:updated':
@@ -228,6 +237,11 @@ export function useLoungeSync(staff: StaffProfile) {
             case 'flavors:updated':
               if (Array.isArray(msg.flavors)) {
                 setFlavors(msg.flavors);
+              }
+              break;
+            case 'reservations:updated':
+              if (Array.isArray(msg.reservations)) {
+                setReservations(msg.reservations as LoungeReservation[]);
               }
               break;
           }
@@ -1272,6 +1286,40 @@ export function useLoungeSync(staff: StaffProfile) {
     [sendAction]
   );
 
+  const addReservation = useCallback(
+    (data: Omit<LoungeReservation, 'id' | 'createdAt'>) => {
+      const now = Date.now();
+      const newRes: LoungeReservation = {
+        ...data,
+        id: `res-${now}-${Math.random().toString(36).slice(2, 6)}`,
+        createdAt: now,
+      };
+      setReservations((prev) => [newRes, ...prev]);
+      sendAction({ type: 'reservations:add', reservation: newRes });
+    },
+    [sendAction]
+  );
+
+  const updateReservationStatus = useCallback(
+    (id: string, status: ReservationStatus, tableId?: string) => {
+      setReservations((prev) =>
+        prev.map((r) =>
+          r.id === id ? { ...r, status, assignedTableId: tableId ?? r.assignedTableId } : r
+        )
+      );
+      sendAction({ type: 'reservations:updateStatus', id, status, tableId });
+    },
+    [sendAction]
+  );
+
+  const deleteReservation = useCallback(
+    (id: string) => {
+      setReservations((prev) => prev.filter((r) => r.id !== id));
+      sendAction({ type: 'reservations:delete', id });
+    },
+    [sendAction]
+  );
+
   return {
     tables,
     history,
@@ -1279,6 +1327,7 @@ export function useLoungeSync(staff: StaffProfile) {
     activeStaff,
     lastBatchReport,
     flavors,
+    reservations,
     connectionState,
     seatTable,
     seatAnotherParty,
@@ -1305,5 +1354,8 @@ export function useLoungeSync(staff: StaffProfile) {
     batchOutShift,
     resetDemo,
     applyTemplate,
+    addReservation,
+    updateReservationStatus,
+    deleteReservation,
   };
 }

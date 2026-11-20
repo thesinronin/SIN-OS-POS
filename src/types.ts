@@ -183,6 +183,23 @@ export interface BatchReport {
   sessions: CompletedSession[];
 }
 
+export type ReservationStatus = 'scheduled' | 'seated' | 'cancelled' | 'noshow';
+
+export interface LoungeReservation {
+  id: string;
+  guestName: string;
+  phone?: string;
+  partySize: number;
+  reservationTime: number;
+  floor?: TableFloor;
+  preferredTier?: SeatingTierId;
+  notes?: string;
+  status: ReservationStatus;
+  createdAt: number;
+  createdBy?: string;
+  assignedTableId?: string;
+}
+
 export interface LoungeStateSnapshot {
   tables: LoungeTable[];
   history: CompletedSession[];
@@ -190,4 +207,5 @@ export interface LoungeStateSnapshot {
   activeStaff: ActiveStaffMember[];
   lastBatchReport?: BatchReport | null;
   flavors?: FlavorOption[];
+  reservations?: LoungeReservation[];
 }

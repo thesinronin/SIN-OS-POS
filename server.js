@@ -485,7 +485,8 @@ function loadPersistedState() {
           history: Array.isArray(parsed.history) ? parsed.history : [],
           settings: { ...DEFAULT_SETTINGS, ...cleanSettings },
           lastBatchReport: parsed.lastBatchReport ?? null,
-          flavors: migratedFlavors
+          flavors: migratedFlavors,
+          reservations: Array.isArray(parsed.reservations) ? parsed.reservations : []
         };
       }
     }
@@ -497,7 +498,8 @@ function loadPersistedState() {
     history: [],
     settings: { ...DEFAULT_SETTINGS },
     lastBatchReport: null,
-    flavors: createInitialFlavors()
+    flavors: createInitialFlavors(),
+    reservations: []
   };
 }
 var state = loadPersistedState();
@@ -520,7 +522,8 @@ function getSnapshot() {
     settings: state.settings,
     activeStaff: Array.from(connectedStaff.values()),
     lastBatchReport: state.lastBatchReport,
-    flavors: state.flavors
+    flavors: state.flavors,
+    reservations: state.reservations
   };
 }
 function broadcast(wss, payload) {
@@ -1358,6 +1361,35 @@ async function startServer() {
             state.flavors = state.flavors.filter((f) => f.id !== flavorId);
             scheduleSave();
             broadcast(wss, { type: "flavors:updated", flavors: state.flavors });
+            break;
+          }
+          case "reservations:add": {
+            const resData = msg.reservation;
+            if (resData && resData.guestName) {
+              state.reservations.unshift(resData);
+              scheduleSave();
+              broadcast(wss, { type: "reservations:updated", reservations: state.reservations });
+            }
+            break;
+          }
+          case "reservations:updateStatus": {
+            const resId = String(msg.id || "");
+            const newStatus = msg.status;
+            const tableId = msg.tableId ? String(msg.tableId) : void 0;
+            const target = state.reservations.find((r) => r.id === resId);
+            if (target && newStatus) {
+              target.status = newStatus;
+              if (tableId) target.assignedTableId = tableId;
+              scheduleSave();
+              broadcast(wss, { type: "reservations:updated", reservations: state.reservations });
+            }
+            break;
+          }
+          case "reservations:delete": {
+            const resId = String(msg.id || "");
+            state.reservations = state.reservations.filter((r) => r.id !== resId);
+            scheduleSave();
+            broadcast(wss, { type: "reservations:updated", reservations: state.reservations });
             break;
           }
           case "shift:batchOut": {

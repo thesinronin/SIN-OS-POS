@@ -24,6 +24,7 @@ import type {
   FlavorCategory,
   FlavorOption,
   KitchenTicketPayload,
+  LoungeReservation,
   LoungeSettings,
   LoungeStateSnapshot,
   LoungeTable,
@@ -32,6 +33,7 @@ import type {
   PrepStatus,
   PrinterMode,
   PrinterPaperWidth,
+  ReservationStatus,
   SeatingTierId,
   StaffRole,
   TableFloor,
@@ -49,6 +51,7 @@ interface PersistedData {
   settings: LoungeSettings;
   lastBatchReport: BatchReport | null;
   flavors: FlavorOption[];
+  reservations: LoungeReservation[];
 }
 
 function loadPersistedState(): PersistedData {
@@ -78,6 +81,7 @@ function loadPersistedState(): PersistedData {
           settings: { ...DEFAULT_SETTINGS, ...cleanSettings } as LoungeSettings,
           lastBatchReport: parsed.lastBatchReport ?? null,
           flavors: migratedFlavors,
+          reservations: Array.isArray(parsed.reservations) ? parsed.reservations : [],
         };
       }
     }
@@ -90,6 +94,7 @@ function loadPersistedState(): PersistedData {
     settings: { ...DEFAULT_SETTINGS },
     lastBatchReport: null,
     flavors: createInitialFlavors(),
+    reservations: [],
   };
 }
 
@@ -116,6 +121,7 @@ function getSnapshot(): LoungeStateSnapshot {
     activeStaff: Array.from(connectedStaff.values()),
     lastBatchReport: state.lastBatchReport,
     flavors: state.flavors,
+    reservations: state.reservations,
   };
 }
 
@@ -1153,6 +1159,38 @@ async function startServer() {
             state.flavors = state.flavors.filter((f) => f.id !== flavorId);
             scheduleSave();
             broadcast(wss, { type: 'flavors:updated', flavors: state.flavors });
+            break;
+          }
+
+          case 'reservations:add': {
+            const resData = msg.reservation as LoungeReservation;
+            if (resData && resData.guestName) {
+              state.reservations.unshift(resData);
+              scheduleSave();
+              broadcast(wss, { type: 'reservations:updated', reservations: state.reservations });
+            }
+            break;
+          }
+
+          case 'reservations:updateStatus': {
+            const resId = String(msg.id || '');
+            const newStatus = msg.status as ReservationStatus;
+            const tableId = msg.tableId ? String(msg.tableId) : undefined;
+            const target = state.reservations.find((r) => r.id === resId);
+            if (target && newStatus) {
+              target.status = newStatus;
+              if (tableId) target.assignedTableId = tableId;
+              scheduleSave();
+              broadcast(wss, { type: 'reservations:updated', reservations: state.reservations });
+            }
+            break;
+          }
+
+          case 'reservations:delete': {
+            const resId = String(msg.id || '');
+            state.reservations = state.reservations.filter((r) => r.id !== resId);
+            scheduleSave();
+            broadcast(wss, { type: 'reservations:updated', reservations: state.reservations });
             break;
           }
 

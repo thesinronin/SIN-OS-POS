@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   BarChart3,
+  Calendar,
   Crown,
   Flame,
   LayoutGrid,
@@ -34,6 +35,7 @@ import type {
 } from './types';
 import { FloorPlanScreen } from './screens/FloorPlanScreen';
 import { StoreScreen } from './screens/StoreScreen';
+import { ReservationsScreen } from './screens/ReservationsScreen';
 import { HookahStationScreen } from './screens/HookahStationScreen';
 import { AnalyticsScreen } from './screens/AnalyticsScreen';
 import { TableDetailSheet } from './components/TableDetailSheet';
@@ -49,7 +51,7 @@ import { PWAInstallButton } from './components/PWAInstallButton';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { triggerHaptic, useAndroidWakeLock } from './hooks/useAndroidWakeLock';
 
-type Tab = 'tables' | 'store' | 'station' | 'analytics';
+type Tab = 'tables' | 'store' | 'reservations' | 'station' | 'analytics';
 
 const STAFF_STORAGE_KEY = 'emberpos_staff_profile_v1';
 
@@ -121,6 +123,7 @@ export default function App() {
     activeStaff,
     lastBatchReport,
     flavors,
+    reservations,
     connectionState,
     seatTable,
     seatAnotherParty,
@@ -145,6 +148,9 @@ export default function App() {
     batchOutShift,
     resetDemo,
     applyTemplate,
+    addReservation,
+    updateReservationStatus,
+    deleteReservation,
   } = useLoungeSync(staff);
 
   const wakeLock = useAndroidWakeLock();
@@ -628,7 +634,18 @@ export default function App() {
                   : 'border-transparent text-slate-400 hover:text-cyan-200'
               }`}
             >
-              Store Menu (+Tax)
+              Store Menu
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab('reservations')}
+              className={`py-1.5 border-b-2 transition-colors whitespace-nowrap shrink-0 font-display tracking-wide ${
+                tab === 'reservations'
+                  ? 'border-cyan-400 text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.45)]'
+                  : 'border-transparent text-slate-400 hover:text-cyan-200'
+              }`}
+            >
+              Reservations{reservations.filter((r) => r.status === 'scheduled').length > 0 ? ` (${reservations.filter((r) => r.status === 'scheduled').length})` : ''}
             </button>
             <button
               type="button"
@@ -770,6 +787,20 @@ export default function App() {
           />
         )}
 
+        {tab === 'reservations' && (
+          <ReservationsScreen
+            reservations={reservations}
+            tables={tables}
+            staffName={staff.name}
+            onAddReservation={addReservation}
+            onUpdateReservationStatus={updateReservationStatus}
+            onDeleteReservation={deleteReservation}
+            onSeatTable={(tableId, partySize, guestName, preferredTier) => {
+              handleSeatTable(tableId, partySize, guestName, preferredTier || 'downstairs');
+            }}
+          />
+        )}
+
         {tab === 'station' && (
           <HookahStationScreen
             tables={tables}
@@ -799,7 +830,7 @@ export default function App() {
       {/* Mobile Bottom Thumb-Zone Navigation */}
       <nav
         aria-label="Mobile navigation"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 grid min-h-[48px] pb-safe grid-cols-4 border-t border-cyan-500/20 bg-[#070A15]/95 backdrop-blur-md"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 grid min-h-[48px] pb-safe grid-cols-5 border-t border-cyan-500/20 bg-[#070A15]/95 backdrop-blur-md"
       >
         <button
           type="button"
@@ -827,6 +858,20 @@ export default function App() {
         >
           <ShoppingBag className="h-4 w-4" />
           <span>Store</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic(8);
+            setTab('reservations');
+          }}
+          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] font-semibold font-display tracking-wide ${
+            tab === 'reservations' ? 'text-cyan-300' : 'text-slate-400'
+          }`}
+        >
+          <Calendar className="h-4 w-4" />
+          <span>Bookings</span>
         </button>
 
         <button
