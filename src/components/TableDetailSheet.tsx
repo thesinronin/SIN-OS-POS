@@ -128,6 +128,8 @@ export const TableDetailSheet: React.FC<TableDetailSheetProps> = ({
   const [seatIceHose, setSeatIceHose] = useState(false);
   const [seatUpgradeVip, setSeatUpgradeVip] = useState(false);
   const [seatFlavors, setSeatFlavors] = useState<string[]>([]);
+  const [seatPaymentMethod, setSeatPaymentMethod] = useState<PaymentMethod>('card');
+  const [seatSplitCash, setSeatSplitCash] = useState<string>('');
   const [activeCategory, setActiveCategory] = useState<MenuCategory>('hookah');
   const [confirmCheckout, setConfirmCheckout] = useState(false);
 
@@ -743,80 +745,152 @@ export const TableDetailSheet: React.FC<TableDetailSheetProps> = ({
                       </button>
                     )}
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const now = Date.now();
-                        const initialOrders: OrderItem[] = [
-                          {
-                            id: `ord-${now}-${Math.random().toString(36).slice(2, 7)}`,
-                            menuItemId: chosen.menuItemId,
-                            name: chosen.label,
-                            category: 'hookah',
-                            unitPrice:
-                              chosen.basePrice +
-                              (seatIceHose ? chosen.iceHosePrice : 0),
-                            quantity: 1,
-                            flavors:
-                              seatFlavors.length > 0 ? seatFlavors : undefined,
-                            iceHose: seatIceHose,
-                            prepStatus: 'queued',
-                            orderedAt: now,
-                          },
-                        ];
+                    {/* Pre-Seating Payment Verification Box */}
+                    {(() => {
+                      const taxRate = settings.salesTaxRate !== undefined ? settings.salesTaxRate : 0.0775;
+                      const seatSubtotal =
+                        chosen.basePrice +
+                        (seatIceHose ? chosen.iceHosePrice : 0) +
+                        (extraPeople > 0 ? extraPeople * chosen.extraPersonPrice : 0) +
+                        (upgradeVipApplied && seatUpgradeOpt ? seatUpgradeOpt.price : 0);
+                      const seatTax = seatSubtotal * taxRate;
+                      const seatTotal = seatSubtotal + seatTax;
 
-                        if (extraPeople > 0) {
-                          const extraItemId =
-                            chosen.id === 'vip_allday'
-                              ? 'r-xtra-vip-allday'
-                              : chosen.id === 'vip_onetime'
-                              ? 'r-xtra-vip-onetime'
-                              : 'r-xtra-downstairs';
-                          initialOrders.push({
-                            id: `ord-${now}-${Math.random().toString(36).slice(2, 7)}-xtra`,
-                            menuItemId: extraItemId,
-                            name: `Xtra Person · ${chosen.shortLabel}`,
-                            category: 'refill',
-                            unitPrice: chosen.extraPersonPrice,
-                            quantity: extraPeople,
-                            notes: `${computedPartySize} total (${extraPeople} extra)`,
-                            prepStatus: 'served',
-                            orderedAt: now,
-                          });
-                        }
+                      const verifiedPaymentText =
+                        seatPaymentMethod === 'cash'
+                          ? `CASH ($${seatTotal.toFixed(2)})`
+                          : seatPaymentMethod === 'card'
+                          ? `CARD ($${seatTotal.toFixed(2)})`
+                          : `SPLIT (Cash $${Number(seatSplitCash) || 0} / Card $${Math.max(0, seatTotal - (Number(seatSplitCash) || 0)).toFixed(2)})`;
 
-                        if (upgradeVipApplied && seatUpgradeOpt) {
-                          initialOrders.push({
-                            id: `ord-${now}-${Math.random().toString(36).slice(2, 7)}-vip`,
-                            menuItemId: seatUpgradeOpt.menuItemId,
-                            name: seatUpgradeOpt.label,
-                            category: 'refill',
-                            unitPrice: seatUpgradeOpt.price,
-                            quantity: 1,
-                            notes: `Upgraded ${chosen.shortLabel} to All Day VIP`,
-                            prepStatus: 'served',
-                            orderedAt: now,
-                          });
-                        }
+                      return (
+                        <div className="space-y-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.06] p-3 text-xs">
+                          <div className="flex items-center justify-between font-bold text-slate-100">
+                            <span>Pre-Payment Due (Inc. {(taxRate * 100).toFixed(1)}% Tax):</span>
+                            <span className="font-mono text-emerald-400 text-sm">${seatTotal.toFixed(2)}</span>
+                          </div>
 
-                        onSeatTable(
-                          table.id,
-                          computedPartySize,
-                          guestName.trim(),
-                          initialOrders,
-                          upgradeVipApplied ? 'vip_allday' : chosen.id,
-                          upgradeVipApplied ? undefined : chosen.timeLimitMinutes,
-                          seatTableNumber.trim() || undefined
-                        );
-                        setGuestName('');
-                        setSeatUpgradeVip(false);
-                        setSeatFlavors([]);
-                      }}
-                      className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-4 py-3 text-sm font-bold text-slate-950 transition-colors hover:bg-cyan-300 cyber-glow-cyan"
-                    >
-                      <Play className="h-4 w-4 fill-current" />
-                      Seat Party &amp; Open Tab · ${openingTotal.toFixed(2)}
-                    </button>
+                          <div className="grid grid-cols-3 gap-1 rounded-lg border border-emerald-500/20 bg-[#060913] p-0.5">
+                            {(['card', 'cash', 'split'] as PaymentMethod[]).map((m) => (
+                              <button
+                                key={m}
+                                type="button"
+                                onClick={() => {
+                                  setSeatPaymentMethod(m);
+                                  if (m === 'split' && !seatSplitCash) {
+                                    setSeatSplitCash((seatTotal / 2).toFixed(2));
+                                  }
+                                }}
+                                className={`min-h-[34px] rounded-md text-[11px] font-bold uppercase transition-colors ${
+                                  seatPaymentMethod === m
+                                    ? 'bg-emerald-400 text-slate-950 cyber-glow-emerald'
+                                    : 'text-slate-300 hover:text-emerald-200'
+                                }`}
+                              >
+                                {m}
+                              </button>
+                            ))}
+                          </div>
+
+                          {seatPaymentMethod === 'split' && (
+                            <div className="flex items-center justify-between gap-2 pt-1 font-mono text-[11px] text-slate-300">
+                              <label className="flex items-center gap-1">
+                                <span>Cash $</span>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={seatTotal}
+                                  value={seatSplitCash}
+                                  onChange={(e) => setSeatSplitCash(e.target.value)}
+                                  className="w-16 rounded border border-emerald-500/30 bg-[#060913] px-1.5 py-0.5 text-right font-bold text-emerald-300 focus:outline-none"
+                                />
+                              </label>
+                              <span>Card ${Math.max(0, seatTotal - (Number(seatSplitCash) || 0)).toFixed(2)}</span>
+                            </div>
+                          )}
+
+                          <p className="text-[10px] text-emerald-300/90 font-mono">
+                            Verified: {verifiedPaymentText}
+                          </p>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const now = Date.now();
+                              const initialOrders: OrderItem[] = [
+                                {
+                                  id: `ord-${now}-${Math.random().toString(36).slice(2, 7)}`,
+                                  menuItemId: chosen.menuItemId,
+                                  name: chosen.label,
+                                  category: 'hookah',
+                                  unitPrice:
+                                    chosen.basePrice +
+                                    (seatIceHose ? chosen.iceHosePrice : 0),
+                                  quantity: 1,
+                                  flavors:
+                                    seatFlavors.length > 0 ? seatFlavors : undefined,
+                                  iceHose: seatIceHose,
+                                  notes: `PRE-PAID: ${verifiedPaymentText}`,
+                                  prepStatus: 'queued',
+                                  orderedAt: now,
+                                },
+                              ];
+
+                              if (extraPeople > 0) {
+                                const extraItemId =
+                                  chosen.id === 'vip_allday'
+                                    ? 'r-xtra-vip-allday'
+                                    : chosen.id === 'vip_onetime'
+                                    ? 'r-xtra-vip-onetime'
+                                    : 'r-xtra-downstairs';
+                                initialOrders.push({
+                                  id: `ord-${now}-${Math.random().toString(36).slice(2, 7)}-xtra`,
+                                  menuItemId: extraItemId,
+                                  name: `Xtra Person · ${chosen.shortLabel}`,
+                                  category: 'refill',
+                                  unitPrice: chosen.extraPersonPrice,
+                                  quantity: extraPeople,
+                                  notes: `${computedPartySize} total (${extraPeople} extra) · Pre-paid: ${verifiedPaymentText}`,
+                                  prepStatus: 'served',
+                                  orderedAt: now,
+                                });
+                              }
+
+                              if (upgradeVipApplied && seatUpgradeOpt) {
+                                initialOrders.push({
+                                  id: `ord-${now}-${Math.random().toString(36).slice(2, 7)}-vip`,
+                                  menuItemId: seatUpgradeOpt.menuItemId,
+                                  name: seatUpgradeOpt.label,
+                                  category: 'refill',
+                                  unitPrice: seatUpgradeOpt.price,
+                                  quantity: 1,
+                                  notes: `Upgraded ${chosen.shortLabel} to All Day VIP · Pre-paid: ${verifiedPaymentText}`,
+                                  prepStatus: 'served',
+                                  orderedAt: now,
+                                });
+                              }
+
+                              onSeatTable(
+                                table.id,
+                                computedPartySize,
+                                guestName.trim(),
+                                initialOrders,
+                                upgradeVipApplied ? 'vip_allday' : chosen.id,
+                                upgradeVipApplied ? undefined : chosen.timeLimitMinutes,
+                                seatTableNumber.trim() || undefined
+                              );
+                              setGuestName('');
+                              setSeatUpgradeVip(false);
+                              setSeatFlavors([]);
+                            }}
+                            className="flex min-h-[46px] w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 px-4 py-2.5 text-sm font-bold text-slate-950 transition-colors hover:bg-emerald-300 cyber-glow-emerald"
+                          >
+                            <Play className="h-4 w-4 fill-current" />
+                            Verify {seatPaymentMethod.toUpperCase()} &amp; Seat Party (${seatTotal.toFixed(2)})
+                          </button>
+                        </div>
+                      );
+                    })()}
                   </>
                 );
               })()}
