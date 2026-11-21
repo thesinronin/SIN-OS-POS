@@ -17,6 +17,8 @@ interface TableEditorModalProps {
     seats: number;
     shape: TableShape;
     rotation?: number;
+    width?: number;
+    height?: number;
   }) => void;
   onDelete: (tableId: string) => void;
 }
@@ -36,6 +38,8 @@ export const TableEditorModal: React.FC<TableEditorModalProps> = ({
   const [seats, setSeats] = useState('4');
   const [shape, setShape] = useState<TableShape>('square');
   const [rotation, setRotation] = useState<number>(0);
+  const [width, setWidth] = useState<string>('');
+  const [height, setHeight] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -51,6 +55,8 @@ export const TableEditorModal: React.FC<TableEditorModalProps> = ({
       setSeats(String(table.seats));
       setShape(table.shape);
       setRotation(table.rotation || 0);
+      setWidth(table.width ? String(table.width) : '');
+      setHeight(table.height ? String(table.height) : '');
     } else {
       setName('');
       setTableNumber('');
@@ -59,6 +65,8 @@ export const TableEditorModal: React.FC<TableEditorModalProps> = ({
       setSeats('4');
       setShape(defaultFloor === 'Outside' ? 'round' : 'square');
       setRotation(0);
+      setWidth('');
+      setHeight('');
     }
   }, [table, defaultFloor, visible]);
 
@@ -81,6 +89,8 @@ export const TableEditorModal: React.FC<TableEditorModalProps> = ({
       seats: Math.max(1, parseInt(seats, 10) || 4),
       shape,
       rotation,
+      width: width ? parseInt(width, 10) : undefined,
+      height: height ? parseInt(height, 10) : undefined,
     });
     onClose();
   };
@@ -237,25 +247,53 @@ export const TableEditorModal: React.FC<TableEditorModalProps> = ({
             </div>
           </div>
 
-          <div>
-            <span className="block text-xs font-medium text-cyan-200/80 mb-1.5">
-              Rotation
-            </span>
-            <div className="grid grid-cols-4 gap-2">
-              {[0, 90, 180, 270].map((deg) => (
-                <button
-                  key={deg}
-                  type="button"
-                  onClick={() => setRotation(deg)}
-                  className={`min-h-[44px] rounded-xl border px-2 py-2 text-xs font-bold transition-colors ${
-                    rotation === deg
-                      ? 'border-cyan-400 bg-cyan-400 text-slate-950 cyber-glow-cyan'
-                      : 'border-cyan-500/25 bg-[#060913] text-slate-300 hover:border-cyan-400/50'
-                  }`}
-                >
-                  {deg}°
-                </button>
-              ))}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <span className="block text-xs font-medium text-cyan-200/80 mb-1.5">
+                Custom Size (Optional px)
+              </span>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  placeholder="W"
+                  min={40}
+                  max={400}
+                  value={width}
+                  onChange={(e) => setWidth(e.target.value)}
+                  className="w-full min-h-[44px] rounded-xl border border-cyan-500/25 bg-[#060913] px-3 py-2.5 font-mono text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+                />
+                <input
+                  type="number"
+                  placeholder="H"
+                  min={40}
+                  max={400}
+                  value={height}
+                  onChange={(e) => setHeight(e.target.value)}
+                  className="w-full min-h-[44px] rounded-xl border border-cyan-500/25 bg-[#060913] px-3 py-2.5 font-mono text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div>
+              <span className="block text-xs font-medium text-cyan-200/80 mb-1.5">
+                Rotation
+              </span>
+              <div className="grid grid-cols-4 gap-1.5">
+                {[0, 90, 180, 270].map((deg) => (
+                  <button
+                    key={deg}
+                    type="button"
+                    onClick={() => setRotation(deg)}
+                    className={`min-h-[44px] rounded-xl border px-1.5 py-2 text-xs font-bold transition-colors ${
+                      rotation === deg
+                        ? 'border-cyan-400 bg-cyan-400 text-slate-950 cyber-glow-cyan'
+                        : 'border-cyan-500/25 bg-[#060913] text-slate-300 hover:border-cyan-400/50'
+                    }`}
+                  >
+                    {deg}°
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

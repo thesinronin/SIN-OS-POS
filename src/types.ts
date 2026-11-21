@@ -75,6 +75,8 @@ export interface LoungeTable {
   /** Position on 2D floor canvas as percentage (2 - 84) */
   x: number;
   y: number;
+  width?: number;
+  height?: number;
   status: TableStatus;
   rotation?: number;
   seatingTier?: SeatingTierId;

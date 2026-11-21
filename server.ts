@@ -1015,6 +1015,9 @@ async function startServer() {
               zone: TableZone;
               seats: number;
               shape: TableShape;
+              rotation?: number;
+              width?: number;
+              height?: number;
             };
             if (!payload) break;
             const cleanTableNum = String(payload.tableNumber || '').trim() || undefined;
@@ -1032,6 +1035,9 @@ async function startServer() {
               table.zone = payload.zone;
               table.seats = Math.max(1, Number(payload.seats) || 4);
               table.shape = payload.shape;
+              table.rotation = payload.rotation;
+              table.width = payload.width;
+              table.height = payload.height;
               table.updatedAt = now;
 
               scheduleSave();
@@ -1056,6 +1062,9 @@ async function startServer() {
                 zone: payload.zone,
                 seats: Math.max(1, Number(payload.seats) || 4),
                 shape: payload.shape,
+                rotation: payload.rotation,
+                width: payload.width,
+                height: payload.height,
                 x: Math.min(72, 6 + col * 30),
                 y: Math.min(72, 10 + row * 26),
                 status: 'available',

@@ -1062,6 +1062,8 @@ export function useLoungeSync(staff: StaffProfile) {
       seats: number;
       shape: TableShape;
       rotation?: number;
+      width?: number;
+      height?: number;
     }) => {
       const now = Date.now();
       const cleanTableNum = data.tableNumber?.trim() || undefined;
@@ -1082,6 +1084,8 @@ export function useLoungeSync(staff: StaffProfile) {
                   seats: Math.max(1, data.seats || 4),
                   shape: data.shape,
                   rotation: data.rotation ?? t.rotation,
+                  width: data.width,
+                  height: data.height,
                   updatedAt: now,
                 }
               : t
@@ -1110,6 +1114,8 @@ export function useLoungeSync(staff: StaffProfile) {
           seats: Math.max(1, data.seats || 4),
           shape: data.shape,
           rotation: data.rotation || 0,
+          width: data.width,
+          height: data.height,
           x: Math.min(72, 6 + col * 30),
           y: Math.min(72, 10 + row * 26),
           status: 'available',

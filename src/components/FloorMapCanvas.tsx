@@ -161,6 +161,8 @@ const DraggableTableNode: React.FC<DraggableNodeProps> = ({
       style={{
         left: `${table.x}%`,
         top: `${table.y}%`,
+        width: table.width ? `${table.width}px` : undefined,
+        height: table.height ? `${table.height}px` : undefined,
         transform:
           [
             dragOffset
@@ -172,7 +174,11 @@ const DraggableTableNode: React.FC<DraggableNodeProps> = ({
             .join(' ') || undefined,
         touchAction: isEditing ? 'none' : 'manipulation',
       }}
-      className={`absolute floor-table-node flex h-[70px] sm:h-[86px] select-none flex-col items-center justify-center border px-2 py-1.5 sm:px-2.5 sm:py-2 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${shapeClass} ${borderAndBg} ${
+      className={`absolute floor-table-node flex select-none flex-col items-center justify-center border px-2 py-1.5 sm:px-2.5 sm:py-2 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
+        table.width && table.height ? '' : shapeClass
+      } ${
+        !table.height ? 'h-[70px] sm:h-[86px]' : ''
+      } ${borderAndBg} ${
         isEditing ? 'cursor-grab active:cursor-grabbing z-20' : 'cursor-pointer z-10'
       }`}
     >
