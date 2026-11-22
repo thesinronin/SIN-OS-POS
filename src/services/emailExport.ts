@@ -21,6 +21,7 @@ export function generateEmailReportBody(
   const closedRevenue = history.reduce((sum, s) => sum + s.total, 0);
   const closedSubtotal = history.reduce((sum, s) => sum + s.subtotal, 0);
   const closedDiscount = history.reduce((sum, s) => sum + (s.discount || 0), 0);
+  const closedSalesTax = history.reduce((sum, s) => sum + s.tax, 0);
   const closedCash = history.reduce(
     (sum, s) => sum + (s.cashPaid ?? (s.paymentMethod === 'cash' ? s.total : 0)),
     0
@@ -33,18 +34,40 @@ export function generateEmailReportBody(
     0
   );
 
+  let totalBowls = 0;
+  const flavorCounts: Record<string, number> = {};
+  const storeItemCounts: Record<string, number> = {};
+
+  history.forEach((session) => {
+    session.orders.forEach((order) => {
+      if (order.category === 'hookah' || order.category === 'refill') {
+        totalBowls += order.quantity;
+        order.flavors?.forEach((flavor) => {
+          flavorCounts[flavor] = (flavorCounts[flavor] || 0) + order.quantity;
+        });
+      } else if (order.category === 'store') {
+        storeItemCounts[order.name] = (storeItemCounts[order.name] || 0) + order.quantity;
+      }
+    });
+  });
+
+  const topFlavors = Object.entries(flavorCounts).sort((a, b) => b[1] - a[1]);
+  const storeSales = Object.entries(storeItemCounts).sort((a, b) => b[1] - a[1]);
+
   const lines: string[] = [];
   lines.push(`SIN-OS Hookah Lounge POS — Daily Batch Shift Report`);
   lines.push(`Date: ${dateStr} at ${timeStr}`);
   lines.push(`Closed By: ${staffName || 'Staff'}`);
   lines.push(`----------------------------------------`);
   lines.push(`FINANCIAL SUMMARY:`);
-  lines.push(`Grand Total Revenue: $${closedRevenue.toFixed(2)}`);
+  lines.push(`Total Profit (Revenue): $${closedRevenue.toFixed(2)}`);
   lines.push(`Subtotal: $${closedSubtotal.toFixed(2)}`);
+  lines.push(`Sales Tax Collected: $${closedSalesTax.toFixed(2)}`);
   lines.push(`Discounts Applied: -$${closedDiscount.toFixed(2)}`);
   lines.push(`Cash Collected: $${closedCash.toFixed(2)}`);
   lines.push(`Card Payments: $${closedCard.toFixed(2)}`);
-  lines.push(`Total Tabs Closed: ${history.length}`);
+  lines.push(`Number of Seatings / Tabs: ${history.length}`);
+  lines.push(`Total Bowls Sold: ${totalBowls}`);
   lines.push(`----------------------------------------`);
 
   if (batchReport) {
@@ -55,13 +78,24 @@ export function generateEmailReportBody(
     lines.push(`----------------------------------------`);
   }
 
-  lines.push(`CLOSED TABS BREAKDOWN (${history.length}):`);
-  history.forEach((s, idx) => {
-    const items = s.orders.map((o) => `${o.quantity}x ${o.name}`).join(', ');
-    lines.push(
-      `${idx + 1}. ${s.tableName} — $${s.total.toFixed(2)} [${s.paymentMethod?.toUpperCase() || 'CARD'}] | Party ${s.partySize}${s.guestName ? ` (${s.guestName})` : ''} | Items: ${items}`
-    );
-  });
+  lines.push(`SHISHA FLAVORS SOLD:`);
+  if (topFlavors.length === 0) {
+    lines.push(`(No flavors sold)`);
+  } else {
+    topFlavors.forEach(([flavor, count]) => {
+      lines.push(`- ${flavor}: ${count} bowl(s)`);
+    });
+  }
+
+  lines.push(`----------------------------------------`);
+  lines.push(`STORE ITEMS SOLD:`);
+  if (storeSales.length === 0) {
+    lines.push(`(No store items sold)`);
+  } else {
+    storeSales.forEach(([item, count]) => {
+      lines.push(`- ${item}: ${count} item(s)`);
+    });
+  }
 
   return lines.join('\n');
 }

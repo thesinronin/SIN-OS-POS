@@ -36,52 +36,40 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
         (s.paymentMethod === 'cash' ? 0 : s.total - (s.cashPaid ?? 0))),
     0
   );
-  const openTablesCount = tables.filter((t) => t.status === 'occupied').length;
-  const openRevenue = tables
-    .filter((t) => t.status === 'occupied')
-    .reduce(
-      (sum, t) =>
-        sum + t.orders.reduce((s, o) => s + o.unitPrice * o.quantity, 0),
-      0
-    );
 
-  const avgDuration =
-    history.length > 0
-      ? Math.round(
-          history.reduce((sum, s) => sum + s.durationMinutes, 0) / history.length
-        )
-      : 0;
-
+  let totalBowls = 0;
   const flavorCounts: Record<string, number> = {};
+  const storeItemCounts: Record<string, number> = {};
+
   history.forEach((session) => {
     session.orders.forEach((order) => {
-      order.flavors?.forEach((flavor) => {
-        flavorCounts[flavor] = (flavorCounts[flavor] || 0) + order.quantity;
-      });
+      if (order.category === 'hookah' || order.category === 'refill') {
+        totalBowls += order.quantity;
+        order.flavors?.forEach((flavor) => {
+          flavorCounts[flavor] = (flavorCounts[flavor] || 0) + order.quantity;
+        });
+      } else if (order.category === 'store') {
+        storeItemCounts[order.name] = (storeItemCounts[order.name] || 0) + order.quantity;
+      }
     });
   });
 
-  // Also include active tables in flavor popularity if no closed sessions yet
+  // Also include active open tables in real-time counts
   tables.forEach((t) => {
     t.orders.forEach((order) => {
-      order.flavors?.forEach((flavor) => {
-        flavorCounts[flavor] = (flavorCounts[flavor] || 0) + order.quantity;
-      });
+      if (order.category === 'hookah' || order.category === 'refill') {
+        totalBowls += order.quantity;
+        order.flavors?.forEach((flavor) => {
+          flavorCounts[flavor] = (flavorCounts[flavor] || 0) + order.quantity;
+        });
+      } else if (order.category === 'store') {
+        storeItemCounts[order.name] = (storeItemCounts[order.name] || 0) + order.quantity;
+      }
     });
   });
 
-  const topFlavors = Object.entries(flavorCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 6);
-
-  const maxFloorRev = Math.max(
-    1,
-    ...FLOORS.map((f) =>
-      history
-        .filter((s) => s.floor === f)
-        .reduce((sum, s) => sum + s.total, 0)
-    )
-  );
+  const topFlavors = Object.entries(flavorCounts).sort((a, b) => b[1] - a[1]);
+  const storeSales = Object.entries(storeItemCounts).sort((a, b) => b[1] - a[1]);
 
   return (
     <div className="space-y-6">
@@ -89,14 +77,14 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border cyber-surface p-4">
         <div>
           <h1 className="text-base font-bold text-slate-100">
-            Daily Total &amp; End-of-Day Close
+            Shift Analytics &amp; End-of-Day Close
           </h1>
           <p className="text-xs text-slate-400">
-            Combined daily total:{' '}
+            Total Profit / Revenue:{' '}
             <strong className="font-mono text-cyan-300 tabular-nums">
-              ${(closedRevenue + openRevenue).toFixed(2)}
+              ${closedRevenue.toFixed(2)}
             </strong>{' '}
-            ({history.length} closed · {openTablesCount} open)
+            ({history.length} seatings)
           </p>
         </div>
 
@@ -152,7 +140,7 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
               <strong className="font-mono text-emerald-300 tabular-nums">
                 ${lastBatchReport.total.toFixed(2)}
               </strong>{' '}
-              across {lastBatchReport.totalTabs} tab
+              across {lastBatchReport.totalTabs} seating
               {lastBatchReport.totalTabs === 1 ? '' : 's'} · Closed by{' '}
               {lastBatchReport.closedBy}
             </p>
@@ -178,82 +166,49 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
         </div>
       )}
 
-      {/* KPI Strip */}
+      {/* KPI Streamlined Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="rounded-2xl border cyber-surface p-4">
-          <p className="text-xs text-slate-400">Closed Revenue</p>
+          <p className="text-xs text-slate-400">Total Profit / Revenue</p>
           <p className="mt-1.5 font-mono text-2xl font-bold text-cyan-300 tabular-nums">
             ${closedRevenue.toFixed(2)}
           </p>
           <p className="mt-1 font-mono text-[11px] text-slate-400 tabular-nums">
-            Cash ${closedCash.toFixed(0)} · Card ${closedCard.toFixed(0)}
+            Cash ${closedCash.toFixed(2)} · Card ${closedCard.toFixed(2)}
           </p>
         </div>
         <div className="rounded-2xl border cyber-surface p-4">
-          <p className="text-xs text-slate-400">Active Open Tabs</p>
+          <p className="text-xs text-slate-400">Number of Seatings</p>
           <p className="mt-1.5 font-mono text-2xl font-bold text-emerald-400 tabular-nums">
-            ${openRevenue.toFixed(2)}
-          </p>
-        </div>
-        <div className="rounded-2xl border cyber-surface p-4">
-          <p className="text-xs text-slate-400">Closed Tables</p>
-          <p className="mt-1.5 font-mono text-2xl font-bold text-fuchsia-300 tabular-nums">
             {history.length}
           </p>
         </div>
         <div className="rounded-2xl border cyber-surface p-4">
-          <p className="text-xs text-slate-400">Avg Stay Duration</p>
-          <p className="mt-1.5 font-mono text-2xl font-bold text-slate-100 tabular-nums">
-            {avgDuration}m
+          <p className="text-xs text-slate-400">Bowls Sold</p>
+          <p className="mt-1.5 font-mono text-2xl font-bold text-fuchsia-300 tabular-nums">
+            {totalBowls}
+          </p>
+        </div>
+        <div className="rounded-2xl border cyber-surface p-4">
+          <p className="text-xs text-slate-400">Store Items Sold</p>
+          <p className="mt-1.5 font-mono text-2xl font-bold text-amber-300 tabular-nums">
+            {Object.values(storeItemCounts).reduce((a, b) => a + b, 0)}
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue by Floor */}
+        {/* Flavors Sold List */}
         <section className="rounded-2xl border cyber-surface p-5">
           <h2 className="text-base font-bold text-slate-100 mb-4">
-            Revenue by Floor
-          </h2>
-          <div className="space-y-4">
-            {FLOORS.map((floor) => {
-              const floorSessions = history.filter((s) => s.floor === floor);
-              const floorTotal = floorSessions.reduce((sum, s) => sum + s.total, 0);
-              const pct = Math.round((floorTotal / maxFloorRev) * 100);
-              return (
-                <div key={floor} className="space-y-1.5">
-                  <div className="flex items-baseline justify-between text-xs">
-                    <span className="font-medium text-slate-200">
-                      {floor} · {floorSessions.length} closed tab
-                      {floorSessions.length === 1 ? '' : 's'}
-                    </span>
-                    <span className="font-mono font-semibold text-emerald-400 tabular-nums">
-                      ${floorTotal.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-900 border border-cyan-500/15">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-fuchsia-500 transition-all"
-                      style={{ width: `${floorTotal > 0 ? Math.max(4, pct) : 0}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Top Flavors */}
-        <section className="rounded-2xl border cyber-surface p-5">
-          <h2 className="text-base font-bold text-slate-100 mb-4">
-            Popular Shisha Flavors (Shift Total)
+            Shisha Flavors Sold
           </h2>
           {topFlavors.length === 0 ? (
             <p className="text-xs text-slate-500">
-              Order or close a hookah bowl to track flavor velocity.
+              No flavor sales recorded yet during this shift.
             </p>
           ) : (
-            <div className="divide-y divide-cyan-500/10">
+            <div className="divide-y divide-cyan-500/10 max-h-80 overflow-y-auto pr-1">
               {topFlavors.map(([flavor, count]) => (
                 <div
                   key={flavor}
@@ -268,53 +223,33 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
             </div>
           )}
         </section>
-      </div>
 
-      {/* Closed Tabs Ledger */}
-      <section className="rounded-2xl border cyber-surface p-5">
-        <h2 className="text-base font-bold text-slate-100 mb-3">
-          Recent Closed Tabs
-        </h2>
-        {history.length === 0 ? (
-          <p className="text-xs text-slate-500">
-            No closed tables yet during this shift. Tap any occupied table to close its tab.
-          </p>
-        ) : (
-          <div className="divide-y divide-cyan-500/10">
-            {history.map((s) => (
-              <div
-                key={s.id}
-                className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm"
-              >
-                <div>
-                  <p className="font-semibold text-slate-100">
-                    {s.floor} · {s.tableName}
-                    {s.guestName ? ` (${s.guestName})` : ''}
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    Party of {s.partySize} · Stayed {s.durationMinutes} mins ·{' '}
-                    {s.orders.length} item{s.orders.length === 1 ? '' : 's'}
-                    {s.serverName ? ` · Server: ${s.serverName}` : ''}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="rounded-md border border-cyan-500/25 bg-[#060913] px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-cyan-300">
-                    {s.paymentMethod === 'cash'
-                      ? 'Cash'
-                      : s.paymentMethod === 'split'
-                      ? 'Split'
-                      : 'Card'}
-                    {s.splitWays && s.splitWays > 1 ? ` · ${s.splitWays}x` : ''}
-                  </span>
-                  <span className="font-mono text-sm font-bold text-emerald-400 tabular-nums">
-                    ${s.total.toFixed(2)}
+        {/* Store Items Sold List */}
+        <section className="rounded-2xl border cyber-surface p-5">
+          <h2 className="text-base font-bold text-slate-100 mb-4">
+            Store Items Sold
+          </h2>
+          {storeSales.length === 0 ? (
+            <p className="text-xs text-slate-500">
+              No store items sold yet during this shift.
+            </p>
+          ) : (
+            <div className="divide-y divide-cyan-500/10 max-h-80 overflow-y-auto pr-1">
+              {storeSales.map(([item, count]) => (
+                <div
+                  key={item}
+                  className="flex items-center justify-between py-2.5 text-sm"
+                >
+                  <span className="font-medium text-slate-200">{item}</span>
+                  <span className="font-mono text-xs font-semibold text-amber-300 tabular-nums">
+                    {count} item{count === 1 ? '' : 's'}
                   </span>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 };

@@ -30,6 +30,7 @@ export function generateShiftCsv(
   const closedRevenue = history.reduce((sum, s) => sum + s.total, 0);
   const closedSubtotal = history.reduce((sum, s) => sum + s.subtotal, 0);
   const closedDiscount = history.reduce((sum, s) => sum + (s.discount || 0), 0);
+  const closedSalesTax = history.reduce((sum, s) => sum + s.tax, 0);
   const closedCash = history.reduce(
     (sum, s) => sum + (s.cashPaid ?? (s.paymentMethod === 'cash' ? s.total : 0)),
     0
@@ -41,24 +42,50 @@ export function generateShiftCsv(
         (s.paymentMethod === 'cash' ? 0 : s.total - (s.cashPaid ?? 0))),
     0
   );
-  const openTablesCount = tables.filter((t) => t.status === 'occupied').length;
-  const openRevenue = tables
-    .filter((t) => t.status === 'occupied')
-    .reduce(
-      (sum, t) =>
-        sum + t.orders.reduce((s, o) => s + o.unitPrice * o.quantity, 0),
-      0
-    );
+
+  let totalBowls = 0;
+  const flavorCounts: Record<string, number> = {};
+  const storeItemCounts: Record<string, number> = {};
+
+  history.forEach((session) => {
+    session.orders.forEach((order) => {
+      if (order.category === 'hookah' || order.category === 'refill') {
+        totalBowls += order.quantity;
+        order.flavors?.forEach((flavor) => {
+          flavorCounts[flavor] = (flavorCounts[flavor] || 0) + order.quantity;
+        });
+      } else if (order.category === 'store') {
+        storeItemCounts[order.name] = (storeItemCounts[order.name] || 0) + order.quantity;
+      }
+    });
+  });
+
+  const topFlavors = Object.entries(flavorCounts).sort((a, b) => b[1] - a[1]);
+  const storeSales = Object.entries(storeItemCounts).sort((a, b) => b[1] - a[1]);
 
   rows.push(['SHIFT FINANCIAL SUMMARY']);
-  rows.push(['Total Closed Revenue', `$${closedRevenue.toFixed(2)}`]);
-  rows.push(['Total Closed Subtotal', `$${closedSubtotal.toFixed(2)}`]);
+  rows.push(['Total Profit (Revenue)', `$${closedRevenue.toFixed(2)}`]);
+  rows.push(['Total Subtotal', `$${closedSubtotal.toFixed(2)}`]);
+  rows.push(['Total Sales Tax Collected', `$${closedSalesTax.toFixed(2)}`]);
   rows.push(['Total Discounts Applied', `$${closedDiscount.toFixed(2)}`]);
   rows.push(['Total Cash Paid', `$${closedCash.toFixed(2)}`]);
   rows.push(['Total Card Paid', `$${closedCard.toFixed(2)}`]);
-  rows.push(['Closed Tabs Count', history.length.toString()]);
-  rows.push(['Active Open Revenue', `$${openRevenue.toFixed(2)}`]);
-  rows.push(['Active Open Tables', openTablesCount.toString()]);
+  rows.push(['Number of Seatings / Tabs', history.length.toString()]);
+  rows.push(['Total Bowls Sold', totalBowls.toString()]);
+  rows.push([]);
+
+  rows.push(['SHISHA FLAVORS SOLD']);
+  rows.push(['Flavor Name', 'Bowls Prepared']);
+  topFlavors.forEach(([flavor, count]) => {
+    rows.push([flavor, count.toString()]);
+  });
+  rows.push([]);
+
+  rows.push(['STORE ITEMS SOLD']);
+  rows.push(['Item Name', 'Quantity Sold']);
+  storeSales.forEach(([item, count]) => {
+    rows.push([item, count.toString()]);
+  });
   rows.push([]);
 
   if (batchReport) {
@@ -70,72 +97,6 @@ export function generateShiftCsv(
     rows.push(['Batch Total', `$${batchReport.total.toFixed(2)}`]);
     rows.push([]);
   }
-
-  // Session / Tab Ledger
-  rows.push(['CLOSED TABS LEDGER']);
-  rows.push([
-    'Table Name',
-    'Floor',
-    'Zone',
-    'Guest / Party Name',
-    'Party Size',
-    'Duration (mins)',
-    'Subtotal ($)',
-    'Discount ($)',
-    'Total Paid ($)',
-    'Payment Method',
-    'Cash Paid ($)',
-    'Card Paid ($)',
-    'Server',
-    'Seated At',
-    'Closed At',
-    'Items Ordered',
-  ]);
-
-  history.forEach((session) => {
-    const itemsSummary = session.orders
-      .map((o) => `${o.quantity}x ${o.name}${o.flavors ? ` [${o.flavors.join(' + ')}]` : ''}`)
-      .join(' | ');
-
-    rows.push([
-      session.tableName,
-      session.floor,
-      session.zone,
-      session.guestName || '',
-      session.partySize.toString(),
-      session.durationMinutes.toString(),
-      session.subtotal.toFixed(2),
-      (session.discount || 0).toFixed(2),
-      session.total.toFixed(2),
-      session.paymentMethod || 'card',
-      (session.cashPaid || 0).toFixed(2),
-      (session.cardPaid || 0).toFixed(2),
-      session.serverName || '',
-      new Date(session.seatedAt).toLocaleTimeString('en-US'),
-      new Date(session.closedAt).toLocaleTimeString('en-US'),
-      itemsSummary,
-    ]);
-  });
-
-  rows.push([]);
-
-  // Popular Flavors Section
-  const flavorCounts: Record<string, number> = {};
-  history.forEach((session) => {
-    session.orders.forEach((order) => {
-      order.flavors?.forEach((flavor) => {
-        flavorCounts[flavor] = (flavorCounts[flavor] || 0) + order.quantity;
-      });
-    });
-  });
-
-  const topFlavors = Object.entries(flavorCounts).sort((a, b) => b[1] - a[1]);
-
-  rows.push(['SHISHA FLAVOR POPULARITY']);
-  rows.push(['Flavor Name', 'Bowls Prepared']);
-  topFlavors.forEach(([flavor, count]) => {
-    rows.push([flavor, count.toString()]);
-  });
 
   return rows.map((row) => row.map(escapeCsvCell).join(',')).join('\n');
 }
