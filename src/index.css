@@ -35,6 +35,21 @@
     text-transform: uppercase !important;
     letter-spacing: 0.08em !important;
   }
+  body.theme-startrek .cyber-surface {
+    background-color: #0E0720 !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+    border-radius: 1.5rem !important;
+  }
+  body.theme-startrek .cyber-inset {
+    background-color: #080314 !important;
+    border-color: rgba(192, 132, 252, 0.25) !important;
+  }
+  body.theme-startrek .floor-grid-bg {
+    background-color: #0A031A !important;
+    background-image:
+      linear-gradient(to right, rgba(245, 158, 11, 0.1) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(192, 132, 252, 0.08) 1px, transparent 1px) !important;
+  }
   body.theme-startrek .floor-table-node {
     border-radius: 9999px 16px 16px 9999px !important;
     border-left: 10px solid #F59E0B !important;
@@ -63,14 +78,26 @@
     border: 1px solid rgba(234, 179, 8, 0.45);
     font-family: 'Cinzel', 'Georgia', serif !important;
   }
+  body.theme-lotr .cyber-surface {
+    background-color: #10190E !important;
+    border-color: rgba(234, 179, 8, 0.3) !important;
+  }
+  body.theme-lotr .cyber-inset {
+    background-color: #080E07 !important;
+    border-color: rgba(34, 197, 94, 0.25) !important;
+  }
+  body.theme-lotr .floor-grid-bg {
+    background-color: #080D07 !important;
+    background-image:
+      linear-gradient(to right, rgba(234, 179, 8, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(34, 197, 94, 0.08) 1px, transparent 1px) !important;
+  }
   body.theme-lotr .cyber-glow-cyan {
     box-shadow: 0 0 25px rgba(234, 179, 8, 0.45), inset 0 2px 2px rgba(254, 240, 138, 0.4) !important;
     background-color: #D97706 !important;
     color: #FEF3C7 !important;
     border: 2px solid #F59E0B !important;
   }
-
-  /* Elven Mallorn Leaf shape for tables in Lord of the Rings theme */
   body.theme-lotr .floor-table-node {
     border-radius: 2px 84% 2px 84% !important;
     border: 2px solid rgba(234, 179, 8, 0.75) !important;
@@ -88,6 +115,20 @@
   }
   body.theme-barney button {
     border-radius: 9999px;
+  }
+  body.theme-barney .cyber-surface {
+    background-color: #250C42 !important;
+    border-color: rgba(132, 204, 22, 0.3) !important;
+  }
+  body.theme-barney .cyber-inset {
+    background-color: #140524 !important;
+    border-color: rgba(217, 70, 239, 0.3) !important;
+  }
+  body.theme-barney .floor-grid-bg {
+    background-color: #160627 !important;
+    background-image:
+      linear-gradient(to right, rgba(132, 204, 22, 0.1) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(217, 70, 239, 0.1) 1px, transparent 1px) !important;
   }
   body.theme-barney .cyber-glow-cyan {
     box-shadow: 0 0 20px rgba(132, 204, 22, 0.4), inset 0 1px 0 rgba(217, 249, 157, 0.3);
@@ -110,6 +151,17 @@
   body.theme-bit8 input {
     border-radius: 0px !important;
   }
+  body.theme-bit8 .cyber-surface {
+    background-color: #000000 !important;
+    border: 2px solid #00FF66 !important;
+  }
+  body.theme-bit8 .cyber-inset {
+    background-color: #050505 !important;
+    border: 1px solid #00FF66 !important;
+  }
+  body.theme-bit8 .floor-grid-bg {
+    background-color: #000000 !important;
+  }
   body.theme-bit8 .cyber-glow-cyan {
     box-shadow: 4px 4px 0px #00FF66 !important;
     background-color: #00FF66 !important;
@@ -118,16 +170,16 @@
 
   /* Theme 6: Windows 95 / Retro Desktop */
   body.theme-win95 {
-    background-color: #008080; /* Win95 classic teal */
-    color: #000000;
-    font-family: 'Tahoma', 'Arial', sans-serif;
+    background-color: #008080 !important; /* Win95 classic teal desktop */
+    color: #000000 !important;
+    font-family: 'Tahoma', 'Arial', sans-serif !important;
   }
   body.theme-win95 * {
     border-radius: 0px !important;
   }
-  body.theme-win95 button,
   body.theme-win95 .cyber-surface,
   body.theme-win95 .cyber-inset,
+  body.theme-win95 .floor-grid-bg,
   body.theme-win95 .floor-table-node {
     background-color: #c0c0c0 !important;
     color: #000000 !important;
@@ -136,40 +188,25 @@
     border-bottom-color: #808080 !important;
     box-shadow: 1px 1px 0px #000000 !important;
   }
+  body.theme-win95 button {
+    background-color: #c0c0c0 !important;
+    color: #000000 !important;
+    border: 2px solid #ffffff !important;
+    border-right-color: #808080 !important;
+    border-bottom-color: #808080 !important;
+    box-shadow: 1px 1px 0px #000000 !important;
+  }
+  body.theme-win95 button:active {
+    border: 2px solid #808080 !important;
+    border-right-color: #ffffff !important;
+    border-bottom-color: #ffffff !important;
+  }
   body.theme-win95 .cyber-glow-cyan {
     background-color: #000080 !important; /* Win95 active title bar blue */
     color: #ffffff !important;
     border: 2px solid #ffffff !important;
     border-right-color: #000000 !important;
     border-bottom-color: #000000 !important;
-    box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080 !important;
-  }
-
-  /* Theme 7: Pen & Paper (Sketch / Notebook Style) */
-  body.theme-paper {
-    background-color: #fdfaf6;
-    background-image:
-      linear-gradient(90deg, transparent 79px, #abced4 79px, #abced4 81px, transparent 81px),
-      linear-gradient(#eee .1em, transparent .1em);
-    background-size: 100% 1.2em;
-    color: #2c3e50;
-    font-family: 'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif;
-  }
-  body.theme-paper button,
-  body.theme-paper .cyber-surface,
-  body.theme-paper .cyber-inset,
-  body.theme-paper .floor-table-node,
-  body.theme-paper input {
-    background-color: transparent !important;
-    color: #2c3e50 !important;
-    border: 2px solid #2c3e50 !important;
-    border-radius: 4px 12px 6px 14px !important; /* Wobbly hand-drawn border effect */
-    box-shadow: 2px 3px 0px rgba(44, 62, 80, 0.2) !important;
-  }
-  body.theme-paper .cyber-glow-cyan {
-    background-color: #34495e !important;
-    color: #fdfaf6 !important;
-    box-shadow: 3px 4px 0px rgba(44, 62, 80, 0.4) !important;
   }
 
   h1, h2, h3, .font-display {
@@ -310,56 +347,6 @@
   background-size: 22px 22px, 88px 88px, 88px 88px;
 }
 
-/* Official Sign in with Google button styling */
-.gsi-material-button {
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  background-color: #ffffff;
-  border: 1px solid #747775;
-  border-radius: 12px;
-  box-sizing: border-box;
-  color: #1f1f1f;
-  cursor: pointer;
-  font-family: 'Plus Jakarta Sans', Roboto, Arial, sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  height: 44px;
-  letter-spacing: 0.2px;
-  outline: none;
-  overflow: hidden;
-  padding: 0 16px;
-  position: relative;
-  text-align: center;
-  transition: background-color 0.2s, box-shadow 0.2s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.gsi-material-button:hover:not(:disabled) {
-  background-color: #f8fafc;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.gsi-material-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.gsi-material-button-content-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.gsi-material-button-icon {
-  height: 18px;
-  width: 18px;
-  flex-shrink: 0;
-}
-
 /* Thermal Kitchen Printer CSS (58mm / 80mm paper) */
 @media print {
   @page {
@@ -395,4 +382,3 @@
     width: 80mm !important;
   }
 }
-

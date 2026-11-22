@@ -254,7 +254,6 @@ export const StaffSettingsModal: React.FC<StaffSettingsModalProps> = ({
                   { id: 'barney', label: 'Barney Purple/Green' },
                   { id: 'bit8', label: '8-Bit Retro Arcade' },
                   { id: 'win95', label: 'Windows 95' },
-                  { id: 'paper', label: 'Pen & Paper' },
                 ] as const
               ).map((t) => (
                 <button
