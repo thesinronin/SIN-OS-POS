@@ -35,6 +35,64 @@ export function buildGoogleCalendarEventUrl(reservation: LoungeReservation): str
 }
 
 /**
+ * Generates an iCalendar (.ics) format file string for Google Calendar import.
+ */
+export function generateReservationsIcsFile(reservations: LoungeReservation[]): string {
+  const lines: string[] = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//SIN-OS Hookah Lounge POS//Reservations Calendar//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'X-WR-CALNAME:Southern Sands Hookah Reservations',
+  ];
+
+  reservations.forEach((res) => {
+    const start = new Date(res.reservationTime);
+    const end = new Date(res.reservationTime + 2 * 3600000);
+    const formatUtc = (d: Date) => d.toISOString().replace(/-|:|\.\d+/g, '');
+
+    lines.push('BEGIN:VEVENT');
+    lines.push(`UID:res-${res.id}@southernsands.pos`);
+    lines.push(`DTSTAMP:${formatUtc(new Date())}`);
+    lines.push(`DTSTART:${formatUtc(start)}`);
+    lines.push(`DTEND:${formatUtc(end)}`);
+    lines.push(`SUMMARY:Hookah Reservation: ${res.guestName} (${res.partySize} People)`);
+    lines.push(
+      `DESCRIPTION:Guest: ${res.guestName}\\nParty: ${res.partySize} People\\nPhone: ${res.phone || 'N/A'}\\nFloor: ${res.floor || 'Floor 1'}\\nNotes: ${res.notes || 'None'}`
+    );
+    lines.push(`LOCATION:Southern Sands Hookah Lounge - ${res.floor || 'Floor 1'}`);
+    lines.push(`STATUS:${res.status === 'cancelled' ? 'CANCELLED' : 'CONFIRMED'}`);
+    lines.push('END:VEVENT');
+  });
+
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
+}
+
+/**
+ * Downloads / Exports .ics file directly to device for 1-tap Google Calendar import.
+ */
+export async function downloadReservationsIcs(reservations: LoungeReservation[]) {
+  const csData = generateReservationsIcsFile(reservations);
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const filename = `HookahReservations-${dateStr}.ics`;
+
+  try {
+    const encodedData = `data:text/calendar;charset=utf-8,${encodeURIComponent(csData)}`;
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedData);
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    alert(`Exported ${reservations.length} reservations to ${filename}! You can import this file directly into Google Calendar.`);
+  } catch (err) {
+    console.error('Failed to export .ics calendar file:', err);
+  }
+}
+
+/**
  * Modular hook for future full Google Calendar API OAuth 2.0 two-way sync.
  */
 export async function syncToGoogleCalendarApi(

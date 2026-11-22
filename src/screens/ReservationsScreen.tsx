@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { SEATING_TIER_LIST } from '../data/menu';
 import { saveReservationsTextDocument } from '../services/reservationExport';
-import { buildGoogleCalendarEventUrl } from '../services/googleCalendarSync';
+import { buildGoogleCalendarEventUrl, downloadReservationsIcs } from '../services/googleCalendarSync';
 import { ReservationCalendarView } from '../components/ReservationCalendarView';
 import type {
   LoungeReservation,
@@ -146,6 +146,15 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => downloadReservationsIcs(reservations)}
+            className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border border-amber-400/40 bg-amber-500/10 px-3.5 text-xs font-bold text-amber-200 hover:bg-amber-500/20 transition-colors"
+          >
+            <Calendar className="h-4 w-4 text-amber-400" />
+            Sync to Google Calendar (.ics)
+          </button>
+
           <button
             type="button"
             onClick={() => saveReservationsTextDocument(reservations, staffName)}

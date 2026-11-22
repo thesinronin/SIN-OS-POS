@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
-import type { BatchReport, CompletedSession, LoungeTable } from '../types';
+import type { BatchReport, CompletedSession, LoungeReservation, LoungeTable } from '../types';
 
 function escapeCsvCell(value: string | number | undefined | null): string {
   if (value === undefined || value === null) return '""';
@@ -12,7 +12,8 @@ export function generateShiftCsv(
   history: CompletedSession[],
   tables: LoungeTable[],
   staffName: string,
-  batchReport?: BatchReport | null
+  batchReport?: BatchReport | null,
+  reservationsToday: LoungeReservation[] = []
 ): string {
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-US');
@@ -88,6 +89,23 @@ export function generateShiftCsv(
   });
   rows.push([]);
 
+  if (reservationsToday.length > 0) {
+    rows.push(['RESERVATIONS BOOKED TODAY']);
+    rows.push(['Guest Name', 'Phone', 'Party Size', 'Time', 'Floor', 'Status', 'Notes']);
+    reservationsToday.forEach((r) => {
+      rows.push([
+        r.guestName,
+        r.phone || '',
+        r.partySize.toString(),
+        new Date(r.reservationTime).toLocaleTimeString('en-US'),
+        r.floor || 'Floor 1',
+        r.status.toUpperCase(),
+        r.notes || '',
+      ]);
+    });
+    rows.push([]);
+  }
+
   if (batchReport) {
     rows.push(['LAST BATCH OUT ARCHIVE']);
     rows.push(['Batch ID', batchReport.id]);
@@ -105,9 +123,10 @@ export async function downloadShiftCsv(
   history: CompletedSession[],
   tables: LoungeTable[],
   staffName: string,
-  batchReport?: BatchReport | null
+  batchReport?: BatchReport | null,
+  reservationsToday: LoungeReservation[] = []
 ) {
-  const csvContent = generateShiftCsv(history, tables, staffName, batchReport);
+  const csvContent = generateShiftCsv(history, tables, staffName, batchReport, reservationsToday);
   const dateStr = new Date().toISOString().slice(0, 10);
   const filename = `HookahClose-${dateStr}.csv`;
 

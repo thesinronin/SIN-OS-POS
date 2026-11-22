@@ -1,14 +1,15 @@
 import React from 'react';
-import { Download, FileText, Mail, Power } from 'lucide-react';
+import { Download, FileText, Mail, Power, Calendar } from 'lucide-react';
 import { FLOORS } from '../data/menu';
 import { downloadShiftCsv } from '../services/csvExport';
 import { sendEmailBatchReport } from '../services/emailExport';
-import type { BatchReport, CompletedSession, LoungeTable } from '../types';
+import type { BatchReport, CompletedSession, LoungeReservation, LoungeTable } from '../types';
 
 interface AnalyticsScreenProps {
   tables: LoungeTable[];
   history: CompletedSession[];
   lastBatchReport: BatchReport | null;
+  reservations?: LoungeReservation[];
   staffName?: string;
   managerEmail?: string;
   onOpenExportDocs: (batch?: BatchReport | null) => void;
@@ -19,6 +20,7 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
   tables,
   history,
   lastBatchReport,
+  reservations = [],
   staffName = 'Staff',
   managerEmail = '',
   onOpenExportDocs,
@@ -35,6 +37,11 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
       (s.cardPaid ??
         (s.paymentMethod === 'cash' ? 0 : s.total - (s.cashPaid ?? 0))),
     0
+  );
+
+  const todayStart = new Date().setHours(0, 0, 0, 0);
+  const reservationsToday = reservations.filter(
+    (r) => r.createdAt >= todayStart || r.reservationTime >= todayStart
   );
 
   let totalBowls = 0;
@@ -84,14 +91,14 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
             <strong className="font-mono text-cyan-300 tabular-nums">
               ${closedRevenue.toFixed(2)}
             </strong>{' '}
-            ({history.length} seatings)
+            ({history.length} seatings · {reservationsToday.length} reservations today)
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => downloadShiftCsv(history, tables, staffName, lastBatchReport)}
+            onClick={() => downloadShiftCsv(history, tables, staffName, lastBatchReport, reservationsToday)}
             className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-emerald-400/40 bg-[#060913] px-3.5 py-2 text-xs font-semibold text-emerald-300 transition-colors hover:border-emerald-300 hover:bg-emerald-500/10 whitespace-nowrap"
           >
             <Download className="h-4 w-4 text-emerald-400" />
@@ -100,7 +107,7 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
 
           <button
             type="button"
-            onClick={() => sendEmailBatchReport(history, tables, staffName, managerEmail, lastBatchReport)}
+            onClick={() => sendEmailBatchReport(history, tables, staffName, managerEmail, lastBatchReport, reservationsToday)}
             className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-fuchsia-400/40 bg-[#060913] px-3.5 py-2 text-xs font-semibold text-fuchsia-200 transition-colors hover:border-fuchsia-300 hover:bg-fuchsia-500/10 whitespace-nowrap"
           >
             <Mail className="h-4 w-4 text-fuchsia-400" />
@@ -250,6 +257,55 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
           )}
         </section>
       </div>
+
+      {/* Reservations Made Today Section */}
+      <section className="rounded-2xl border cyber-surface p-5">
+        <h2 className="text-base font-bold text-slate-100 mb-3 flex items-center justify-between">
+          <span className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-cyan-400" />
+            Reservations Made Today ({reservationsToday.length})
+          </span>
+        </h2>
+        {reservationsToday.length === 0 ? (
+          <p className="text-xs text-slate-500">
+            No reservations booked or scheduled for today yet.
+          </p>
+        ) : (
+          <div className="divide-y divide-cyan-500/10 max-h-80 overflow-y-auto pr-1">
+            {reservationsToday.map((res) => {
+              const resTime = new Date(res.reservationTime).toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+              });
+              return (
+                <div key={res.id} className="flex items-center justify-between py-2.5 text-sm">
+                  <div>
+                    <span className="font-bold text-slate-100">{res.guestName}</span>
+                    <span className="text-xs text-slate-400 font-mono ml-2">
+                      Party of {res.partySize} · {res.floor || 'Floor 1'}
+                    </span>
+                    {res.notes && <p className="text-[11px] text-slate-400 italic">"{res.notes}"</p>}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-semibold text-cyan-300">{resTime}</span>
+                    <span
+                      className={`rounded px-1.5 py-0.5 text-[10px] font-mono font-bold uppercase ${
+                        res.status === 'scheduled'
+                          ? 'bg-cyan-500/20 text-cyan-300'
+                          : res.status === 'seated'
+                          ? 'bg-emerald-500/20 text-emerald-300'
+                          : 'bg-slate-800 text-slate-400'
+                      }`}
+                    >
+                      {res.status}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </div>
   );
 };

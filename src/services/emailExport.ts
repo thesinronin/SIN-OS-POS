@@ -1,10 +1,11 @@
-import type { BatchReport, CompletedSession, LoungeTable } from '../types';
+import type { BatchReport, CompletedSession, LoungeReservation, LoungeTable } from '../types';
 
 export function generateEmailReportBody(
   history: CompletedSession[],
   tables: LoungeTable[],
   staffName: string,
-  batchReport?: BatchReport | null
+  batchReport?: BatchReport | null,
+  reservationsToday: LoungeReservation[] = []
 ): string {
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-US', {
@@ -97,6 +98,15 @@ export function generateEmailReportBody(
     });
   }
 
+  if (reservationsToday.length > 0) {
+    lines.push(`----------------------------------------`);
+    lines.push(`RESERVATIONS BOOKED TODAY (${reservationsToday.length}):`);
+    reservationsToday.forEach((r, idx) => {
+      const timeStr = new Date(r.reservationTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      lines.push(`${idx + 1}. ${r.guestName} (${r.partySize}p) — ${timeStr} @ ${r.floor || 'Floor 1'} [${r.status.toUpperCase()}]`);
+    });
+  }
+
   return lines.join('\n');
 }
 
@@ -105,11 +115,12 @@ export function sendEmailBatchReport(
   tables: LoungeTable[],
   staffName: string,
   targetEmail?: string,
-  batchReport?: BatchReport | null
+  batchReport?: BatchReport | null,
+  reservationsToday: LoungeReservation[] = []
 ): boolean {
   const dateStr = new Date().toLocaleDateString('en-US');
   const subject = `SIN-OS Shift Batch Report — ${dateStr}`;
-  const body = generateEmailReportBody(history, tables, staffName, batchReport);
+  const body = generateEmailReportBody(history, tables, staffName, batchReport, reservationsToday);
 
   const recipient = targetEmail?.trim() || '';
   const mailtoUrl = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(

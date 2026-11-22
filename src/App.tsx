@@ -816,6 +816,7 @@ export default function App() {
             tables={tables}
             history={history}
             lastBatchReport={lastBatchReport}
+            reservations={reservations}
             staffName={staff.name}
             managerEmail={settings.managerEmail}
             onOpenExportDocs={(batch) => {
