@@ -1,4 +1,5 @@
 import type { LoungeReservation } from '../types';
+import { showToast } from './toastNotice';
 
 /**
  * Generates a direct Google Calendar event creation URL (Web / Mobile App link).
@@ -86,7 +87,7 @@ export async function downloadReservationsIcs(reservations: LoungeReservation[])
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    alert(`Exported ${reservations.length} reservations to ${filename}! You can import this file directly into Google Calendar.`);
+    showToast(`Exported ${reservations.length} reservations to ${filename}! You can import this file directly into Google Calendar.`, 'As You Wish ✨');
   } catch (err) {
     console.error('Failed to export .ics calendar file:', err);
   }

@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import type { FlavorOption, LoungeTable } from '../types';
+import { showToast } from './toastNotice';
 
 export interface LayoutFlavorsTemplate {
   version: string;
@@ -61,7 +62,7 @@ export async function exportLayoutAndFlavorsTemplate(
         directory: Directory.Documents,
         encoding: Encoding.UTF8,
       });
-      alert(`Layout & Flavors saved directly to this device in Documents folder: ${filename}`);
+      showToast(`Layout & Flavors saved directly to this device in Documents folder: ${filename}`, 'As You Wish ✨');
       return template;
     } catch (err) {
       console.warn('Capacitor Filesystem layout write error:', err);
@@ -77,7 +78,7 @@ export async function exportLayoutAndFlavorsTemplate(
         text: `Hookah Lounge Layout & Flavors Template — ${dateStr}`,
         files: [file],
       });
-      alert(`Layout & Flavors saved to device! (${filename})`);
+      showToast(`Layout & Flavors saved to device! (${filename})`, 'As You Wish ✨');
       return template;
     }
   } catch {
@@ -93,7 +94,7 @@ export async function exportLayoutAndFlavorsTemplate(
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    alert(`Layout & Flavors saved to device! (${filename})`);
+    showToast(`Layout & Flavors saved to device! (${filename})`, 'As You Wish ✨');
     return template;
   } catch {
     // Fall back to Clipboard
@@ -102,9 +103,9 @@ export async function exportLayoutAndFlavorsTemplate(
   // 4. Clipboard Copy Fallback
   try {
     await navigator.clipboard.writeText(jsonStr);
-    alert(`Layout & Flavors copied to device clipboard as ${filename}! You can paste or restore it anytime.`);
+    showToast(`Layout & Flavors copied to device clipboard as ${filename}! You can paste or restore it anytime.`, 'As You Wish ✨');
   } catch {
-    alert(`Layout & Flavors saved to device storage!`);
+    showToast(`Layout & Flavors saved to device storage!`, 'As You Wish ✨');
   }
 
   return template;

@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import type { BatchReport, CompletedSession, LoungeReservation, LoungeTable } from '../types';
+import { showToast } from './toastNotice';
 
 function escapeCsvCell(value: string | number | undefined | null): string {
   if (value === undefined || value === null) return '""';
@@ -139,7 +140,7 @@ export async function downloadShiftCsv(
         directory: Directory.Documents,
         encoding: Encoding.UTF8,
       });
-      alert(`Close out report saved to device Documents folder: ${filename}`);
+      showToast(`Close out report saved to device Documents folder: ${filename}`, 'As You Wish ✨');
       return;
     } catch (err) {
       console.warn('Capacitor Filesystem write error:', err);
@@ -195,7 +196,7 @@ export async function downloadShiftCsv(
   // 5. Clipboard Copy Fallback (Guaranteed fallback)
   try {
     await navigator.clipboard.writeText(csvContent);
-    alert(`CSV Shift Report copied to clipboard as ${filename}! You can paste it into Excel or Google Sheets.`);
+    showToast(`CSV Shift Report copied to clipboard as ${filename}! You can paste it into Excel or Google Sheets.`, 'As You Wish ✨');
   } catch {
     // Ignore clipboard error
   }

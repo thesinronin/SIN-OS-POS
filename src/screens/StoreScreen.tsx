@@ -11,6 +11,7 @@ import {
   Users,
 } from 'lucide-react';
 import { MENU_ITEMS } from '../data/menu';
+import { showToast } from '../services/toastNotice';
 import type {
   FlavorOption,
   LoungeSettings,
@@ -178,7 +179,7 @@ export const StoreScreen: React.FC<StoreScreenProps> = ({
     const tableName = targetTable.tableNumber ? `#${targetTable.tableNumber} ${targetTable.name}` : targetTable.name;
     setCart([]);
     setSelectedTargetTableId('');
-    alert(`Store tab attached to ${tableName} successfully!`);
+    showToast(`Store tab attached to ${tableName} successfully!`, 'As You Wish ✨');
   };
 
   const handleCounterCheckout = () => {
@@ -200,7 +201,7 @@ export const StoreScreen: React.FC<StoreScreenProps> = ({
 
     setCart([]);
     setConfirmCheckout(false);
-    alert('Counter Sale completed!');
+    showToast('Counter Sale completed!', 'As You Wish ✨');
   };
 
   return (

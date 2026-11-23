@@ -49,6 +49,7 @@ import { KitchenPrintModal } from './components/KitchenPrintModal';
 import { ThermalReceiptPrintView } from './components/ThermalReceiptPrintView';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { ToastContainer } from './components/ToastContainer';
 import { triggerHaptic, useAndroidWakeLock } from './hooks/useAndroidWakeLock';
 
 type Tab = 'tables' | 'store' | 'reservations' | 'station' | 'analytics';
@@ -907,6 +908,7 @@ export default function App() {
       </nav>
 
       <OfflineIndicator />
+      <ToastContainer />
 
       {/* Modals & Sheets */}
       <TableDetailSheet

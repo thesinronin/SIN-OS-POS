@@ -15,6 +15,7 @@ import type {
 import { triggerTimerAlert, unlockAudioEngine } from '../services/audioAlerts';
 import { detectDeviceWifiIp } from '../services/deviceIpDetector';
 import { exportLayoutAndFlavorsTemplate, getSavedLayoutTemplate } from '../services/templateManager';
+import { showToast } from '../services/toastNotice';
 
 interface StaffSettingsModalProps {
   visible: boolean;
@@ -691,9 +692,9 @@ export const StaffSettingsModal: React.FC<StaffSettingsModalProps> = ({
                   const saved = getSavedLayoutTemplate();
                   if (saved && Array.isArray(saved.tables) && saved.tables.length > 0 && onApplyTemplate) {
                     onApplyTemplate(saved.tables, saved.flavors);
-                    alert('Saved Layout & Flavors loaded successfully onto this device!');
+                    showToast('Saved Layout & Flavors loaded successfully onto this device!', 'As You Wish ✨');
                   } else {
-                    alert('No saved layout template found on this device. Click "Save Layout & Flavors" first!');
+                    showToast('No saved layout template found on this device. Click "Save Layout & Flavors" first!', 'As You Wish ✨', 'warning');
                   }
                 }}
                 className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/10 px-3 py-2.5 text-xs font-bold text-fuchsia-200 hover:bg-fuchsia-500/20 transition-colors"

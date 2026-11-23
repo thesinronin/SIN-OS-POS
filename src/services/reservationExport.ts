@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import type { LoungeReservation } from '../types';
+import { showToast } from './toastNotice';
 
 export function generateReservationsTextReport(
   reservations: LoungeReservation[],
@@ -92,7 +93,7 @@ export async function saveReservationsTextDocument(
         directory: Directory.Documents,
         encoding: Encoding.UTF8,
       });
-      alert(`Reservations text document saved to device Documents folder: ${filename}`);
+      showToast(`Reservations text document saved to device Documents folder: ${filename}`, 'As You Wish ✨');
       return;
     } catch (err) {
       console.warn('Capacitor Filesystem reservations write error:', err);
@@ -131,7 +132,7 @@ export async function saveReservationsTextDocument(
   // 4. Clipboard Copy Fallback
   try {
     await navigator.clipboard.writeText(textContent);
-    alert(`Reservations report copied to clipboard as ${filename}! You can paste it into any text document or notes app.`);
+    showToast(`Reservations report copied to clipboard as ${filename}! You can paste it into any text document or notes app.`, 'As You Wish ✨');
   } catch {
     // Ignore error
   }

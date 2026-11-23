@@ -18,6 +18,7 @@ import { SEATING_TIER_LIST } from '../data/menu';
 import { saveReservationsTextDocument } from '../services/reservationExport';
 import { buildGoogleCalendarEventUrl, downloadReservationsIcs } from '../services/googleCalendarSync';
 import { ReservationCalendarView } from '../components/ReservationCalendarView';
+import { showToast } from '../services/toastNotice';
 import type {
   LoungeReservation,
   LoungeTable,
@@ -121,7 +122,7 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
     onUpdateReservationStatus(seatingReservation.id, 'seated', selectedTableId);
     setSeatingReservation(null);
     setSelectedTableId('');
-    alert(`Party ${seatingReservation.guestName} seated successfully!`);
+    showToast(`Party ${seatingReservation.guestName} seated successfully!`, 'As You Wish ✨');
   };
 
   return (
