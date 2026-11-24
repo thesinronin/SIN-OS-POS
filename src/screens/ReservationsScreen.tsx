@@ -38,7 +38,10 @@ interface ReservationsScreenProps {
     tableId: string,
     partySize: number,
     guestName?: string,
-    seatingTier?: SeatingTierId
+    initialOrders?: OrderItem[],
+    seatingTier?: SeatingTierId,
+    timeLimitMinutes?: number,
+    tableNumber?: string
   ) => void;
 }
 
@@ -112,11 +115,31 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
   const handleConfirmSeatParty = () => {
     if (!seatingReservation || !selectedTableId) return;
 
+    const now = Date.now();
+    const tierId = seatingReservation.preferredTier || 'downstairs';
+    const tierInfo = SEATING_TIER_LIST.find((t) => t.id === tierId) || SEATING_TIER_LIST[4];
+
+    const initialOrders: OrderItem[] = [
+      {
+        id: `ord-${now}-${Math.random().toString(36).slice(2, 7)}`,
+        menuItemId: tierInfo.menuItemId,
+        name: tierInfo.label,
+        category: 'hookah',
+        unitPrice: tierInfo.basePrice,
+        quantity: 1,
+        notes: `Reservation Seated: ${seatingReservation.guestName}`,
+        prepStatus: 'queued',
+        orderedAt: now,
+      },
+    ];
+
     onSeatTable(
       selectedTableId,
       seatingReservation.partySize,
       seatingReservation.guestName,
-      seatingReservation.preferredTier || 'downstairs'
+      initialOrders,
+      tierId,
+      tierInfo.timeLimitMinutes
     );
 
     onUpdateReservationStatus(seatingReservation.id, 'seated', selectedTableId);

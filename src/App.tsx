@@ -796,9 +796,7 @@ export default function App() {
             onAddReservation={addReservation}
             onUpdateReservationStatus={updateReservationStatus}
             onDeleteReservation={deleteReservation}
-            onSeatTable={(tableId, partySize, guestName, preferredTier) => {
-              handleSeatTable(tableId, partySize, guestName, preferredTier || 'downstairs');
-            }}
+            onSeatTable={handleSeatTable}
           />
         )}
 

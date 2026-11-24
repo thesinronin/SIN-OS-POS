@@ -99,6 +99,9 @@ export const StaffSettingsModal: React.FC<StaffSettingsModalProps> = ({
   const [salesTaxPct, setSalesTaxPct] = useState(
     String((settings.salesTaxRate !== undefined ? settings.salesTaxRate : 0.0775) * 100)
   );
+  const [defaultFlavorStr, setDefaultFlavorStr] = useState(
+    (settings.defaultFlavors || []).join(', ')
+  );
   const [confirmReset, setConfirmReset] = useState(false);
   const [detectedIp, setDetectedIp] = useState('');
 
@@ -112,6 +115,7 @@ export const StaffSettingsModal: React.FC<StaffSettingsModalProps> = ({
     setSalesTaxPct(
       String((settings.salesTaxRate !== undefined ? settings.salesTaxRate : 0.0775) * 100)
     );
+    setDefaultFlavorStr((settings.defaultFlavors || []).join(', '));
     setManagerEmail(settings.managerEmail || '');
     setSyncServerIp(settings.syncServerIp || '');
     setPrinterMode(settings.kitchenPrinterMode || 'system');
@@ -143,6 +147,10 @@ export const StaffSettingsModal: React.FC<StaffSettingsModalProps> = ({
       coalAlertMinutes: settings.coalAlertMinutes,
       longStayAlertMinutes: Math.max(15, parseInt(stayMins, 10) || 120),
       salesTaxRate: Math.max(0, Math.min(0.5, (parseFloat(salesTaxPct) || 7.75) / 100)),
+      defaultFlavors: defaultFlavorStr
+        .split(',')
+        .map((f) => f.trim())
+        .filter(Boolean),
       theme,
       managerEmail: managerEmail.trim(),
       syncServerIp: syncServerIp.trim(),
@@ -331,6 +339,19 @@ export const StaffSettingsModal: React.FC<StaffSettingsModalProps> = ({
                   className="w-full min-h-[44px] rounded-xl border border-cyan-500/25 bg-[#060913] px-3.5 py-2 font-mono text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-cyan-200/80 mb-1.5">
+                Default Auto-Selected Shisha Flavor(s)
+              </label>
+              <input
+                type="text"
+                value={defaultFlavorStr}
+                onChange={(e) => setDefaultFlavorStr(e.target.value)}
+                placeholder="e.g. Blue Mist, Double Apple, Mint"
+                className="w-full min-h-[44px] rounded-xl border border-cyan-500/25 bg-[#060913] px-3.5 py-2 text-xs text-slate-100 placeholder-slate-500 focus:border-cyan-400 focus:outline-none"
+              />
             </div>
 
             <div>

@@ -131,6 +131,7 @@ export interface LoungeSettings {
   coalAlertMinutes: number;
   longStayAlertMinutes: number;
   salesTaxRate?: number;
+  defaultFlavors?: string[];
   theme?: AppTheme;
   managerEmail?: string;
   syncServerIp?: string;

@@ -824,6 +824,7 @@ export function useLoungeSync(staff: StaffProfile) {
             return {
               ...t,
               status: 'available',
+              tableNumber: undefined,
               seatingTier: undefined,
               timeLimitMinutes: undefined,
               partySize: undefined,
@@ -832,6 +833,7 @@ export function useLoungeSync(staff: StaffProfile) {
               seatedAt: undefined,
               lastCoalCheckAt: undefined,
               orders: [],
+              parties: undefined,
               updatedAt: now,
             };
           }

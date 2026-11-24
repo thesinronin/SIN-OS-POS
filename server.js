@@ -1152,6 +1152,7 @@ async function startServer() {
             toTable.orders = movedOrders;
             toTable.updatedAt = now;
             fromTable.status = "available";
+            fromTable.tableNumber = void 0;
             fromTable.seatingTier = void 0;
             fromTable.timeLimitMinutes = void 0;
             fromTable.partySize = void 0;
@@ -1160,6 +1161,7 @@ async function startServer() {
             fromTable.seatedAt = void 0;
             fromTable.lastCoalCheckAt = void 0;
             fromTable.orders = [];
+            fromTable.parties = void 0;
             fromTable.updatedAt = now;
             scheduleSave();
             broadcast(wss, { type: "table:updated", table: fromTable });

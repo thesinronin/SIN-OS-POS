@@ -896,6 +896,7 @@ async function startServer() {
             toTable.updatedAt = now;
 
             fromTable.status = 'available';
+            fromTable.tableNumber = undefined;
             fromTable.seatingTier = undefined;
             fromTable.timeLimitMinutes = undefined;
             fromTable.partySize = undefined;
@@ -904,6 +905,7 @@ async function startServer() {
             fromTable.seatedAt = undefined;
             fromTable.lastCoalCheckAt = undefined;
             fromTable.orders = [];
+            fromTable.parties = undefined;
             fromTable.updatedAt = now;
 
             scheduleSave();
